@@ -1,0 +1,110 @@
+"""Tiered eval runner.
+
+    python -m evals.run --tier fast|standard|nightly
+
+Exits non-zero if thresholds in evals/thresholds.yaml are missed, so CI can gate on it.
+Scoring here is deterministic (substring checks). Add LLM-as-judge scorers in
+evals/judges.py and validate them against a human-labeled gold set before trusting them.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from app.pipeline import run as system_under_test
+
+EVALS_DIR = Path(__file__).resolve().parent
+TIER_SIZES: dict[str, int | None] = {"fast": 15, "standard": 50, "nightly": None}
+
+
+def load_cases(tier: str) -> list[dict[str, Any]]:
+    cases: list[dict[str, Any]] = []
+    for path in sorted((EVALS_DIR / "cases").glob("*.jsonl")):
+        for line in path.read_text().splitlines():
+            if line.strip():
+                cases.append(json.loads(line))
+    limit = TIER_SIZES[tier]
+    return cases if limit is None else cases[:limit]
+
+
+def score_case(case: dict[str, Any]) -> dict[str, Any]:
+    start = time.perf_counter()
+    try:
+        output = system_under_test(case["input"])
+        error = None
+    except Exception as exc:  # a crash is a failed case, not a crashed eval run
+        output, error = "", repr(exc)
+    latency = time.perf_counter() - start
+    expected = case.get("expected_contains", [])
+    passed = error is None and all(e.lower() in output.lower() for e in expected)
+    return {
+        "id": case["id"],
+        "category": case.get("category", "default"),
+        "passed": passed,
+        "latency_s": latency,
+        "cost_usd": 0.0,  # populate from real usage once the pipeline calls a model
+        "error": error,
+    }
+
+
+def p95(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(0.95 * len(ordered)))]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tier", choices=list(TIER_SIZES), default="fast")
+    args = parser.parse_args()
+
+    thresholds = yaml.safe_load((EVALS_DIR / "thresholds.yaml").read_text())
+    cases = load_cases(args.tier)
+    if not cases:
+        print("No eval cases found.", file=sys.stderr)
+        return 1
+
+    results = [score_case(c) for c in cases]
+    pass_rate = sum(r["passed"] for r in results) / len(results)
+    latency_p95 = p95([r["latency_s"] for r in results])
+    mean_cost = sum(r["cost_usd"] for r in results) / len(results)
+
+    summary = {
+        "tier": args.tier,
+        "n_cases": len(results),
+        "pass_rate": round(pass_rate, 4),
+        "latency_p95_s": round(latency_p95, 4),
+        "mean_cost_usd": round(mean_cost, 4),
+    }
+
+    failures = []
+    if pass_rate < thresholds["min_pass_rate"]:
+        failures.append(f"pass_rate {pass_rate:.2%} < {thresholds['min_pass_rate']:.2%}")
+    if latency_p95 > thresholds["max_latency_p95_s"]:
+        failures.append(f"latency_p95 {latency_p95:.2f}s > {thresholds['max_latency_p95_s']}s")
+    if mean_cost > thresholds["max_mean_cost_usd"]:
+        failures.append(f"mean_cost ${mean_cost:.3f} > ${thresholds['max_mean_cost_usd']}")
+
+    report_dir = EVALS_DIR / "reports"
+    report_dir.mkdir(exist_ok=True)
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    (report_dir / f"{args.tier}-{stamp}.json").write_text(
+        json.dumps({"summary": summary, "failures": failures, "results": results}, indent=2)
+    )
+
+    print(json.dumps(summary, indent=2))
+    for f in failures:
+        print(f"FAIL: {f}", file=sys.stderr)
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,4 @@
+# Starting points, not standards. Tune per project, and change only in dedicated commits.
+min_pass_rate: 0.90
+max_latency_p95_s: 2.0
+max_mean_cost_usd: 0.10
