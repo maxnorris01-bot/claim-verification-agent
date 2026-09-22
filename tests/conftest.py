@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
-from app import llm
+from app import llm, tracing
 
 
 @pytest.fixture(autouse=True)
-def _no_tracing(monkeypatch: pytest.MonkeyPatch) -> None:
+def _no_tracing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # Belt and suspenders: the env var covers Config.from_env(), and redirecting TRACE_PATH
+    # covers tests that construct Config() directly (its tracing_disabled default is False) -
+    # either path alone left tests writing fake spans into the real runs/trace.jsonl.
     monkeypatch.setenv("APP_TRACING_DISABLED", "1")
+    monkeypatch.setattr(tracing, "TRACE_PATH", tmp_path / "trace.jsonl")
 
 
 def text_block(payload: dict[str, Any] | str) -> SimpleNamespace:
