@@ -191,7 +191,10 @@ it deliberately, not routinely - see Evaluation below.
   (`evaluators._search_evaluator` drops anything else) - the model can't cite a URL from memory.
 - Every agent run has a step cap and a cost cap (`Config.max_steps` / `max_cost_usd`,
   `src/app/config.py`); exceeding either raises `BudgetExceededError`. There is currently no
-  wall-clock cap - see Known failures.
+  wall-clock cap - see Known failures. `max_cost_usd` defaults to $0.50 (raised from an initial
+  $0.25 placeholder once the streaming fix let heavy claims actually reach the cost check instead
+  of timing out first - the live sanity check hit $0.319 and $0.183 on the same claim across two
+  runs, both over the old cap; see the streaming-fix session doc).
 
 ## Design decisions
 
