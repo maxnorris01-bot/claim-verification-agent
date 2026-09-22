@@ -1,5 +1,7 @@
 # Starting points, not standards. Tune per project, and change only in dedicated commits.
-# v0: latency raised 2s -> 60s because every claim needs an LLM classify call plus a web-search evaluator call.
+# v0: latency raised 2s -> 60s (uninformed pre-run guess), then 60s -> 300s after a real
+# eval-fast run measured p95 = 240s: search-heavy statistical_data/provenance_only claims can
+# need several searches, each round-tripping through the model at effort=medium.
 min_pass_rate: 0.90
-max_latency_p95_s: 60.0
+max_latency_p95_s: 300.0
 max_mean_cost_usd: 0.10
