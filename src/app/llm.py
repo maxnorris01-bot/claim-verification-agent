@@ -3,7 +3,12 @@
 Every request goes through `complete`, which:
   * counts one step per API request and checks the cost cap after each one (`Budget`),
   * records a `tracing.span` tagged with the prompt version,
-  * resumes server-side tool turns that stop with `pause_turn`.
+  * resumes server-side tool turns that stop with `pause_turn`,
+  * streams the request when both `stream=True` is passed and the live client is in use (see
+    `_create_message`) - a buffered `create()` call can sit fully idle until the entire response
+    is ready, which is what caused the real, reproduced `APITimeoutError` on search-heavy
+    evaluator calls (docs/adr and README's Known failures); streaming avoids that by reading back
+    data continuously instead of waiting on one big blocking read.
 """
 
 from __future__ import annotations
@@ -127,6 +132,23 @@ def _inspect_tool_blocks(content: list[Any]) -> tuple[list[dict[str, Any]], set[
     return searches, urls
 
 
+def _create_message(
+    client: _MessagesClient, config: Config, params: dict[str, Any], stream: bool
+) -> Message:
+    """Issue one request, streaming it on the live client when `stream` is set.
+
+    Only the live client streams: the mock client (`app.mock_llm.MockAnthropicClient`) only
+    implements `.create()`, so mock mode's behavior is unaffected by `stream` either way - see
+    `Config.llm_mode`. `.get_final_message()` returns the same `Message` shape `.create()` does,
+    so nothing downstream (usage/tool-block inspection, pause_turn handling, text extraction)
+    needs to know which path was taken.
+    """
+    if stream and config.llm_mode == "live":
+        with client.messages.stream(**params) as stream_ctx:
+            return cast(Message, stream_ctx.get_final_message())
+    return cast(Message, client.messages.create(**params))
+
+
 def complete(
     *,
     span_name: str,
@@ -138,8 +160,14 @@ def complete(
     schema: dict[str, Any] | None = None,
     tools: list[dict[str, Any]] | None = None,
     effort: str | None = None,
+    stream: bool = False,
 ) -> Completion:
-    """Run one logical model call (resuming `pause_turn`) and return the final text."""
+    """Run one logical model call (resuming `pause_turn`) and return the final text.
+
+    Pass `stream=True` for calls that can run long (evaluator research calls with web search) -
+    see `_create_message`. Leave it `False` (default) for short calls like the classifier, where
+    there's nothing to fix.
+    """
     config = budget.config
     client = get_client(config.llm_mode)
     messages: list[Any] = [{"role": "user", "content": user_text}]
@@ -171,7 +199,7 @@ def complete(
         ) as rec:
             budget.start_step()
             rec["step"] = budget.steps
-            response = cast(Message, client.messages.create(**params))
+            response = _create_message(client, config, params, stream)
             searches, urls = _inspect_tool_blocks(list(response.content))
             retrieved |= urls
             cost = estimate_cost(model, response.usage)
@@ -192,8 +220,15 @@ def complete(
             continue
         if response.stop_reason in ("max_tokens", "refusal"):
             raise LLMOutputError(f"{span_name}: response ended with {response.stop_reason}")
-        text = "".join(b.text for b in response.content if b.type == "text")
-        return Completion(text=text, retrieved_urls=retrieved)
+        # Every call here passes a schema, and structured output guarantees the *first* text
+        # block is the valid JSON - take only that one. Joining every text block together (the
+        # old behavior) silently concatenated two separate JSON objects back-to-back into one
+        # unparseable string on a call that emitted more than one text block, found live while
+        # sanity-checking the streaming fix below.
+        text_blocks = [b.text for b in response.content if b.type == "text"]
+        if not text_blocks:
+            raise LLMOutputError(f"{span_name}: response has no text content")
+        return Completion(text=text_blocks[0], retrieved_urls=retrieved)
 
 
 def parse_json_object(text: str, *, what: str) -> dict[str, Any]:
