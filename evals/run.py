@@ -15,6 +15,15 @@ Scoring depends on `Config.llm_mode` (`APP_LLM_MODE`, default "mock"):
     signal, not a quality signal. This is the default (`make eval-fast`), costs nothing, and
     needs no API key.
 
+Cases are scored concurrently (ThreadPoolExecutor, see MAX_WORKERS): each case is dominated by
+network wait (a live evaluator call, or a fast but still-a-call mock/classifier round trip), so
+threads overlap that wait instead of running cases one at a time. This only helps wall-clock time,
+not cost - each case still pays for its own calls. Every case gets its own `Budget` (no shared
+mutable state across threads); `app.llm.get_client`'s cached client instance is shared across
+threads by design (both `anthropic.Anthropic` and `MockAnthropicClient` are simple enough that
+this is expected to be safe, but it hasn't been stress-tested here). `app.tracing.span`'s file
+write is lock-protected so concurrent cases' trace lines can't interleave.
+
 Add LLM-as-judge scorers in evals/judges.py and validate them against a human-labeled gold set
 before trusting them.
 """
@@ -25,6 +34,7 @@ import argparse
 import json
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +48,9 @@ from app.verdict import Label, Tier, Verdict
 
 EVALS_DIR = Path(__file__).resolve().parent
 TIER_SIZES: dict[str, int | None] = {"fast": 15, "standard": 50, "nightly": None}
+# Each case is one network-bound run() call; this only shortens wall-clock time (cases still run
+# one request at a time internally), not cost - every case pays for its own calls regardless.
+MAX_WORKERS = 5
 
 
 def load_cases(tier: str) -> list[dict[str, Any]]:
@@ -120,7 +133,13 @@ def main() -> int:
         print("No eval cases found.", file=sys.stderr)
         return 1
 
-    results = [score_case(c, config) for c in cases]
+    def _score(case: dict[str, Any]) -> dict[str, Any]:
+        return score_case(case, config)
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        # .map preserves input order in its results, regardless of completion order, so the
+        # report's case order stays stable and reproducible run to run.
+        results = list(executor.map(_score, cases))
     pass_rate = sum(r["passed"] for r in results) / len(results)
     latency_p95 = p95([r["latency_s"] for r in results])
     mean_cost = sum(r["cost_usd"] for r in results) / len(results)
