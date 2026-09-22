@@ -17,7 +17,10 @@ from app.verdict import Confidence, Evidence, Label, Tier, Verdict, not_implemen
 
 Evaluator = Callable[[str, Classification, Budget], Verdict]
 
-EVALUATOR_MAX_TOKENS = 6000
+# A claim needing several searches (each producing its own code-execution + result content) can
+# push output past 6000 tokens before the final JSON verdict; observed live at 6778 on a 4-search
+# case, which hit the old cap and raised instead of returning a verdict. 12000 gives headroom.
+EVALUATOR_MAX_TOKENS = 12000
 EVALUATOR_EFFORT = "medium"
 
 
