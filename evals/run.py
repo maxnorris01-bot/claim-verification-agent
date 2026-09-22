@@ -3,8 +3,9 @@
     python -m evals.run --tier fast|standard|nightly
 
 Exits non-zero if thresholds in evals/thresholds.yaml are missed, so CI can gate on it.
-Scoring here is deterministic (substring checks). Add LLM-as-judge scorers in
-evals/judges.py and validate them against a human-labeled gold set before trusting them.
+Scoring here is deterministic: `expected_contains` substrings are matched (case-insensitively)
+against the compact JSON of the returned Verdict, e.g. `"verdict": "mixed"`. Add LLM-as-judge
+scorers in evals/judges.py and validate them against a human-labeled gold set before trusting them.
 """
 
 from __future__ import annotations
@@ -18,7 +19,10 @@ from typing import Any
 
 import yaml
 
+from app.config import Config, load_env
+from app.llm import Budget
 from app.pipeline import run as system_under_test
+from app.prompts import PROMPTS_DIR, load_prompt
 
 EVALS_DIR = Path(__file__).resolve().parent
 TIER_SIZES: dict[str, int | None] = {"fast": 15, "standard": 50, "nightly": None}
@@ -34,10 +38,15 @@ def load_cases(tier: str) -> list[dict[str, Any]]:
     return cases if limit is None else cases[:limit]
 
 
+def prompt_versions() -> dict[str, str]:
+    return {p.stem: load_prompt(p.stem).version for p in sorted(PROMPTS_DIR.glob("*.md"))}
+
+
 def score_case(case: dict[str, Any]) -> dict[str, Any]:
+    budget = Budget(Config.from_env())
     start = time.perf_counter()
     try:
-        output = system_under_test(case["input"])
+        output = system_under_test(case["input"], budget=budget).to_json()
         error = None
     except Exception as exc:  # a crash is a failed case, not a crashed eval run
         output, error = "", repr(exc)
@@ -49,8 +58,10 @@ def score_case(case: dict[str, Any]) -> dict[str, Any]:
         "category": case.get("category", "default"),
         "passed": passed,
         "latency_s": latency,
-        "cost_usd": 0.0,  # populate from real usage once the pipeline calls a model
+        "cost_usd": budget.cost_usd,
+        "steps": budget.steps,
         "error": error,
+        "output": output,
     }
 
 
@@ -65,6 +76,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tier", choices=list(TIER_SIZES), default="fast")
     args = parser.parse_args()
+    load_env()
 
     thresholds = yaml.safe_load((EVALS_DIR / "thresholds.yaml").read_text())
     cases = load_cases(args.tier)
@@ -79,6 +91,7 @@ def main() -> int:
 
     summary = {
         "tier": args.tier,
+        "prompt_versions": prompt_versions(),
         "n_cases": len(results),
         "pass_rate": round(pass_rate, 4),
         "latency_p95_s": round(latency_p95, 4),
