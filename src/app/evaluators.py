@@ -70,6 +70,10 @@ def _search_evaluator(tier: Tier, labels: list[Label]) -> Evaluator:
                 schema=schema,
                 tools=[web_search_tool(budget.config.max_searches)],
                 effort=EVALUATOR_EFFORT,
+                # Search-heavy claims can run long with nothing to show for it until the whole
+                # response is ready; streaming avoids the ~360s APITimeoutError that caused on
+                # the buffered call (see README's Known failures). No-op in mock mode.
+                stream=True,
             )
             data = parse_json_object(completion.text, what=f"evaluator.{tier.value}")
 
