@@ -18,6 +18,15 @@
 ## Definition of done
 Lint clean, tests pass, `make eval-fast` meets `evals/thresholds.yaml`, README results table updated if numbers changed.
 
+## Session summary (required at the end of every implementation session)
+Write `docs/sessions/<YYYY-MM-DD>-<short-slug>.md` before handing off, even if not asked. It's read by someone outside this session with no other context, so write it plainly, not as agent notes to self. Include:
+- What changed and why (the key decisions, not a diff narration)
+- Anything you asked the user to choose between mid-session, and what was picked
+- Eval numbers: tier run, pass rate, latency p95, mean cost, vs. thresholds
+- Test/lint/typecheck status
+- Open questions or things you'd flag for review before this merges
+- Exact next command the user should run (e.g. `git diff main`, `make eval-fast`)
+
 ## Conventions
 - Conventional Commits (`feat:`, `fix:`, `eval:`, `docs:`, `chore:`).
 - One logical change per commit; small PRs.
