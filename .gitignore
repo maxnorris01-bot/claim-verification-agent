@@ -9,3 +9,4 @@ dist/
 *.egg-info/
 runs/
 .DS_Store
+evals/reports/*.json
