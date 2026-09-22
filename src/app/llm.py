@@ -11,14 +11,23 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 import anthropic
 from anthropic.types import Message
 
 from app.config import Config, check_budget
+from app.mock_llm import MockAnthropicClient
 from app.prompts import Prompt
 from app.tracing import span
+
+
+class _MessagesClient(Protocol):
+    """Structural type for whatever `get_client` returns - the real SDK client or the mock."""
+
+    @property
+    def messages(self) -> Any: ...
+
 
 # USD per million tokens (input, output). Web search is billed per request on top of tokens.
 PRICING: dict[str, tuple[float, float]] = {
@@ -65,8 +74,17 @@ class Completion:
     retrieved_urls: set[str] = field(default_factory=set)
 
 
-@lru_cache(maxsize=1)
-def get_client() -> anthropic.Anthropic:
+@lru_cache(maxsize=2)
+def get_client(mode: str) -> _MessagesClient:
+    """Return the client for `mode` ("mock" or "live"), cached per mode.
+
+    Called with `budget.config.llm_mode`, so which client answers is controlled entirely by
+    `Config.llm_mode` / `APP_LLM_MODE` - see its docstring. Tests bypass this by monkeypatching
+    the function itself (`tests/conftest.py`), so its signature change is the only thing they
+    need to track.
+    """
+    if mode == "mock":
+        return MockAnthropicClient()
     return anthropic.Anthropic(timeout=REQUEST_TIMEOUT_S)
 
 
@@ -122,8 +140,8 @@ def complete(
     effort: str | None = None,
 ) -> Completion:
     """Run one logical model call (resuming `pause_turn`) and return the final text."""
-    client = get_client()
     config = budget.config
+    client = get_client(config.llm_mode)
     messages: list[Any] = [{"role": "user", "content": user_text}]
     output_config: dict[str, Any] = {}
     if schema is not None:

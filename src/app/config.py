@@ -10,6 +10,8 @@ from dataclasses import dataclass
 
 from dotenv import find_dotenv, load_dotenv
 
+LLM_MODES = ("mock", "live")
+
 
 @dataclass(frozen=True)
 class Config:
@@ -19,6 +21,15 @@ class Config:
     classifier_model: str = "claude-haiku-4-5"
     evaluator_model: str = "claude-sonnet-5"
     max_searches: int = 4
+    # "mock" (default): app.llm.get_client returns app.mock_llm.MockAnthropicClient - zero API
+    # calls, zero cost, no key required. "live": the real Anthropic client, real cost. Never
+    # defaults to "live" - every entry point (CLI, eval harness) is free unless explicitly opted
+    # in via APP_LLM_MODE=live, e.g. `make eval-fast-live`.
+    llm_mode: str = "mock"
+
+    def __post_init__(self) -> None:
+        if self.llm_mode not in LLM_MODES:
+            raise ValueError(f"APP_LLM_MODE must be one of {LLM_MODES}, got {self.llm_mode!r}")
 
     @classmethod
     def from_env(cls) -> Config:
@@ -29,6 +40,7 @@ class Config:
             classifier_model=os.environ.get("APP_CLASSIFIER_MODEL", "claude-haiku-4-5"),
             evaluator_model=os.environ.get("APP_EVALUATOR_MODEL", "claude-sonnet-5"),
             max_searches=int(os.environ.get("APP_MAX_SEARCHES", "4")),
+            llm_mode=os.environ.get("APP_LLM_MODE", "mock"),
         )
 
 
