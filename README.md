@@ -49,6 +49,8 @@ Every claim below is backed by a reproducible run. Reports live in [`evals/repor
 
 Report: [`evals/reports/fast-20260921-175111.json`](evals/reports/fast-20260921-175111.json)
 (first live run, superseded: [`fast-20260921-173157.json`](evals/reports/fast-20260921-173157.json))
+Both predate the mock/live toggle added afterward; reports since are named
+`{tier}-{mock|live}-{timestamp}.json` so a report's mode is unambiguous from its filename alone.
 
 **`make eval-fast` does not currently pass its own thresholds.** Two live runs against the real
 API (identical code the second time except for the fixes in commits `f5828ff`/`7ac91bb`/`a34e351`)
@@ -81,30 +83,54 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/OWNER/REPO && cd REPO
-cp .env.example .env        # add ANTHROPIC_API_KEY
+cp .env.example .env        # add ANTHROPIC_API_KEY if you'll run anything live (see below)
 make install
 make test
-make eval-fast
+make eval-fast               # mock mode, default - free, no key required
 
 uv run python scripts/check_claim.py claim="According to Gallup, 5.6% of U.S. adults identified as LGBT in 2020."
+# ^ also runs in mock mode by default; set APP_LLM_MODE=live (or export it) for a real answer
 ```
+
+### Mock vs. live
+
+Every entry point (`scripts/check_claim.py`, `make eval-fast`) defaults to `APP_LLM_MODE=mock`:
+`app.llm.get_client` returns `app.mock_llm.MockAnthropicClient` instead of the real Anthropic
+client, so nothing hits the network and nothing costs money. The mock auto-generates
+schema-valid responses for any classifier or evaluator request - real enough in *shape* to
+exercise routing, both evaluator schemas, evidence-URL grounding, tracing, and budget accounting,
+but it has no real-world knowledge: verdict labels are picked arbitrarily, not reasoned about.
+**A 100% mock pass rate is a plumbing signal, not a quality signal.**
+
+Only `make eval-fast-live` (or `APP_LLM_MODE=live`) calls the real API and costs real money. Run
+it deliberately, not routinely - see Evaluation below.
 
 ## Evaluation
 
-| Tier | When | Size | Command |
-|------|------|------|---------|
-| fast | every PR | 15 cases | `make eval-fast` |
-| standard | CI on main | ~50 cases | `make eval-standard` |
-| nightly | scheduled | 100+ cases | `make eval-nightly` |
+| Tier | When | Size | Cost |Command |
+|------|------|------|------|--------|
+| fast (mock) | every PR, routinely | 15 cases | free | `make eval-fast` |
+| fast (live) | deliberately, not routinely | 15 cases | real API cost | `make eval-fast-live` |
+| standard | CI on main | ~50 cases | real API cost | `make eval-standard` |
+| nightly | scheduled | 100+ cases | real API cost | `make eval-nightly` |
 
 - Cases live in `evals/cases/` (`v0.jsonl`: 6 `statistical_data`, 5 `provenance_only`, 2
-  unimplemented-tier, 2 edge) and change through their own commits, like code.
+  unimplemented-tier, 2 edge) and change through their own commits, like code. The same case file
+  is used by both `eval-fast` and `eval-fast-live` - only which client answers, and what counts as
+  "passed," differs (see Mock vs. live above and `evals/run.py`'s docstring).
 - Thresholds live in `evals/thresholds.yaml`; CI fails if they're missed. `max_latency_p95_s` was
-  raised twice in this session, both times in dedicated `eval:` commits with the reasoning
-  recorded in the file - see `git log -- evals/thresholds.yaml`.
-- Scoring in v0 is deterministic: `expected_contains` substrings matched against the compact JSON
-  of the returned `Verdict`. Rubric-based LLM-as-judge scoring (`evals/rubrics/`) is deferred to
-  v1, per SPEC.md, and would need a human-labeled gold set before being trusted (`evals/README.md`).
+  raised twice against live-mode data in this session, both times in dedicated `eval:` commits
+  with the reasoning recorded in the file - see `git log -- evals/thresholds.yaml`. The same
+  numeric thresholds apply to mock-mode reports too, where they're trivially met (near-zero
+  simulated cost/latency) since mock mode's pass_rate reflects routing correctness, not quality.
+- Scoring in live mode is deterministic: `expected_contains` substrings matched against the
+  compact JSON of the returned `Verdict`. Rubric-based LLM-as-judge scoring (`evals/rubrics/`) is
+  deferred to v1, per SPEC.md, and would need a human-labeled gold set before being trusted
+  (`evals/README.md`). Scoring in mock mode checks only that the returned tier matches the case's
+  `category` (or, for edge cases, that the verdict is `invalid-input`) - see `evals/run.py`.
+- `eval-standard` and `eval-nightly` don't yet have mock-mode-forced/live-forced variants the way
+  `eval-fast`/`eval-fast-live` do - they inherit whatever `APP_LLM_MODE` is set to (mock by
+  default). Worth adding the same explicit split before either is used for real.
 
 ## Known failures and limitations
 
@@ -153,6 +179,8 @@ uv run python scripts/check_claim.py claim="According to Gallup, 5.6% of U.S. ad
 
 ## Security and cost notes
 
+- Every entry point defaults to `APP_LLM_MODE=mock` (zero cost, no key required); only an
+  explicit `live` override (or `make eval-fast-live`) spends real money - see Mock vs. live above.
 - Secrets are read from environment variables (`ANTHROPIC_API_KEY`); `.env` is gitignored and
   `.env.example` lists what's needed. Nothing sensitive is committed.
 - Untrusted input: the claim text is the entire content of the user turn sent to the model. Every
