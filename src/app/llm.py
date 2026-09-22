@@ -1,0 +1,188 @@
+"""Budgeted, traced wrapper around the Anthropic Messages API.
+
+Every request goes through `complete`, which:
+  * counts one step per API request and checks the cost cap after each one (`Budget`),
+  * records a `tracing.span` tagged with the prompt version,
+  * resumes server-side tool turns that stop with `pause_turn`.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
+from functools import lru_cache
+from typing import Any, cast
+
+import anthropic
+from anthropic.types import Message
+
+from app.config import Config, check_budget
+from app.prompts import Prompt
+from app.tracing import span
+
+# USD per million tokens (input, output). Web search is billed per request on top of tokens.
+PRICING: dict[str, tuple[float, float]] = {
+    "claude-haiku-4-5": (1.0, 5.0),
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-sonnet-4-6": (3.0, 15.0),
+    "claude-opus-5": (5.0, 25.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-fable-5-1": (10.0, 50.0),
+}
+CACHE_READ_MULTIPLIER = 0.1
+CACHE_WRITE_MULTIPLIER = 1.25
+WEB_SEARCH_USD_PER_REQUEST = 0.01
+WEB_SEARCH_TOOL_TYPE = "web_search_20260209"  # dynamic filtering; needs Sonnet 4.6+/Opus 4.6+
+
+REQUEST_TIMEOUT_S = 120.0
+
+
+class LLMOutputError(RuntimeError):
+    """The model's response was unusable (refusal, truncation, or malformed JSON)."""
+
+
+class Budget:
+    """Step and cost accounting for one `pipeline.run` call."""
+
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self.steps = 0
+        self.cost_usd = 0.0
+
+    def start_step(self) -> None:
+        """Reserve a step before making a request, so the cap is hit before spending."""
+        check_budget(self.config, self.steps + 1, self.cost_usd)
+        self.steps += 1
+
+    def add_cost(self, usd: float) -> None:
+        self.cost_usd += usd
+        check_budget(self.config, self.steps, self.cost_usd)
+
+
+@dataclass
+class Completion:
+    text: str
+    retrieved_urls: set[str] = field(default_factory=set)
+
+
+@lru_cache(maxsize=1)
+def get_client() -> anthropic.Anthropic:
+    return anthropic.Anthropic(timeout=REQUEST_TIMEOUT_S)
+
+
+def web_search_tool(max_uses: int) -> dict[str, Any]:
+    return {"type": WEB_SEARCH_TOOL_TYPE, "name": "web_search", "max_uses": max_uses}
+
+
+def estimate_cost(model: str, usage: Any) -> float:
+    # Unknown models are priced at the most expensive known rate so the cap stays conservative.
+    in_price, out_price = PRICING.get(model, max(PRICING.values()))
+    cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
+    cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
+    token_cost = (
+        usage.input_tokens * in_price
+        + cache_read * in_price * CACHE_READ_MULTIPLIER
+        + cache_write * in_price * CACHE_WRITE_MULTIPLIER
+        + usage.output_tokens * out_price
+    ) / 1_000_000
+    return float(token_cost + _web_searches(usage) * WEB_SEARCH_USD_PER_REQUEST)
+
+
+def _web_searches(usage: Any) -> int:
+    server_tool_use = getattr(usage, "server_tool_use", None)
+    return int(getattr(server_tool_use, "web_search_requests", 0) or 0)
+
+
+def _inspect_tool_blocks(content: list[Any]) -> tuple[list[dict[str, Any]], set[str]]:
+    """Return (search log for the trace, URLs the search tool actually returned)."""
+    searches: list[dict[str, Any]] = []
+    urls: set[str] = set()
+    for block in content:
+        if block.type == "server_tool_use" and block.name == "web_search":
+            searches.append({"query": block.input.get("query")})
+        elif block.type == "web_search_tool_result":
+            if isinstance(block.content, list):
+                urls.update(r.url for r in block.content)
+                searches.append({"results": len(block.content)})
+            else:  # server-tool errors arrive as a 200 with an error object, not an exception
+                searches.append({"error": getattr(block.content, "error_code", "unknown")})
+    return searches, urls
+
+
+def complete(
+    *,
+    span_name: str,
+    prompt: Prompt,
+    model: str,
+    user_text: str,
+    budget: Budget,
+    max_tokens: int,
+    schema: dict[str, Any] | None = None,
+    tools: list[dict[str, Any]] | None = None,
+    effort: str | None = None,
+) -> Completion:
+    """Run one logical model call (resuming `pause_turn`) and return the final text."""
+    client = get_client()
+    config = budget.config
+    messages: list[Any] = [{"role": "user", "content": user_text}]
+    output_config: dict[str, Any] = {}
+    if schema is not None:
+        output_config["format"] = {"type": "json_schema", "schema": schema}
+    if effort is not None:
+        output_config["effort"] = effort
+
+    retrieved: set[str] = set()
+    while True:
+        params: dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "system": prompt.text,
+            "messages": messages,
+        }
+        if tools:
+            params["tools"] = tools
+        if output_config:
+            params["output_config"] = output_config
+
+        with span(
+            span_name,
+            config=config,
+            prompt_version=prompt.version,
+            prompt_name=prompt.name,
+            model=model,
+        ) as rec:
+            budget.start_step()
+            rec["step"] = budget.steps
+            response = cast(Message, client.messages.create(**params))
+            searches, urls = _inspect_tool_blocks(list(response.content))
+            retrieved |= urls
+            cost = estimate_cost(model, response.usage)
+            rec.update(
+                stop_reason=response.stop_reason,
+                input_tokens=response.usage.input_tokens,
+                output_tokens=response.usage.output_tokens,
+                web_searches=_web_searches(response.usage),
+                searches=searches,
+                cost_usd=round(cost, 5),
+                request_id=getattr(response, "_request_id", None),
+            )
+            budget.add_cost(cost)
+
+        if response.stop_reason == "pause_turn":
+            # Long server-tool turn: re-send with the assistant content appended to resume.
+            messages.append({"role": "assistant", "content": response.content})
+            continue
+        if response.stop_reason in ("max_tokens", "refusal"):
+            raise LLMOutputError(f"{span_name}: response ended with {response.stop_reason}")
+        text = "".join(b.text for b in response.content if b.type == "text")
+        return Completion(text=text, retrieved_urls=retrieved)
+
+
+def parse_json_object(text: str, *, what: str) -> dict[str, Any]:
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise LLMOutputError(f"{what}: model did not return valid JSON: {text[:200]!r}") from exc
+    if not isinstance(parsed, dict):
+        raise LLMOutputError(f"{what}: expected a JSON object, got {type(parsed).__name__}")
+    return parsed
