@@ -1,15 +1,23 @@
-"""Shared fixtures: a scripted fake Anthropic client so tests never touch the network."""
+"""Shared fixtures: a scripted fake Anthropic client so tests never touch the network.
+
+The response-construction primitives (`text_block`, `search_blocks`, `response`) and
+`ScriptedClient` live in `app.mock_llm` now, promoted out of this file so the same shapes back
+both the unit tests here and `APP_LLM_MODE=mock`'s production client. This file just re-exports
+them for the existing tests and wires `install_client` to `app.llm.get_client`'s new
+mode-keyed signature.
+"""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 from app import llm, tracing
+from app.mock_llm import ScriptedClient, response, search_blocks, text_block
+
+__all__ = ["response", "search_blocks", "text_block", "ScriptedClient", "install_client"]
 
 
 @pytest.fixture(autouse=True)
@@ -21,60 +29,11 @@ def _no_tracing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(tracing, "TRACE_PATH", tmp_path / "trace.jsonl")
 
 
-def text_block(payload: dict[str, Any] | str) -> SimpleNamespace:
-    text = payload if isinstance(payload, str) else json.dumps(payload)
-    return SimpleNamespace(type="text", text=text)
-
-
-def search_blocks(query: str, urls: list[str]) -> list[SimpleNamespace]:
-    return [
-        SimpleNamespace(type="server_tool_use", name="web_search", input={"query": query}),
-        SimpleNamespace(
-            type="web_search_tool_result", content=[SimpleNamespace(url=u) for u in urls]
-        ),
-    ]
-
-
-def response(
-    content: list[SimpleNamespace],
-    *,
-    stop_reason: str = "end_turn",
-    input_tokens: int = 100,
-    output_tokens: int = 50,
-    searches: int = 0,
-) -> SimpleNamespace:
-    return SimpleNamespace(
-        content=content,
-        stop_reason=stop_reason,
-        usage=SimpleNamespace(
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            cache_read_input_tokens=0,
-            cache_creation_input_tokens=0,
-            server_tool_use=SimpleNamespace(web_search_requests=searches),
-        ),
-        _request_id="req_test",
-    )
-
-
-class FakeClient:
-    """Returns scripted responses in order and records every request."""
-
-    def __init__(self, responses: list[SimpleNamespace]) -> None:
-        self._responses = list(responses)
-        self.calls: list[dict[str, Any]] = []
-        self.messages = SimpleNamespace(create=self._create)
-
-    def _create(self, **kwargs: Any) -> SimpleNamespace:
-        self.calls.append(kwargs)
-        return self._responses.pop(0)
-
-
 @pytest.fixture
 def install_client(monkeypatch: pytest.MonkeyPatch) -> Any:
-    def install(responses: list[SimpleNamespace]) -> FakeClient:
-        client = FakeClient(responses)
-        monkeypatch.setattr(llm, "get_client", lambda: client)
+    def install(responses: list[Any]) -> ScriptedClient:
+        client = ScriptedClient(responses)
+        monkeypatch.setattr(llm, "get_client", lambda mode: client)
         return client
 
     return install
