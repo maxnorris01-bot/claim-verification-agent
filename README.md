@@ -42,22 +42,26 @@ Every claim below is backed by a reproducible run. Reports live in [`evals/repor
 
 | Claim | Evidence | Result |
 |-------|----------|--------|
-| Meets task quality bar | `make eval-fast`, 15 cases | **73.3%** pass rate (11/15) — below the 90% threshold; see Known failures |
-| Handles failures gracefully | 2 unimplemented-tier + 2 edge cases, all pass across both live runs | 4/4 degrade to an explicit Verdict, no crashes |
-| Cost per claim | Mean over 15 cases | **$0.080** (threshold ≤$0.10, met) |
-| Latency | p95 over 15 cases | **364.4s** — above the 300s threshold; see Known failures |
+| Meets task quality bar | `make eval-fast-live`, 13 cases | **92.3%** pass rate (12/13) — meets the 90% threshold |
+| Handles failures gracefully | 2 unimplemented-tier + 2 edge cases, all pass across all three live runs | 4/4 degrade to an explicit Verdict, no crashes |
+| Cost per claim | Mean over 13 cases | **$0.088** (threshold ≤$0.10, met); $1.15 total for the run |
+| Latency | p95 over 13 cases | **229.6s** (threshold ≤300s, met) |
 
-Report: [`evals/reports/fast-20260921-175111.json`](evals/reports/fast-20260921-175111.json)
-(first live run, superseded: [`fast-20260921-173157.json`](evals/reports/fast-20260921-173157.json))
-Both predate the mock/live toggle added afterward; reports since are named
+Report: [`evals/reports/fast-live-20260923-204027.json`](evals/reports/fast-live-20260923-204027.json)
+(third live run - first with concurrent case scoring, the streaming fix, and the 13-case
+known-unstable-excluded set all active together; supersedes the two earlier 15-case runs:
+[`fast-20260921-175111.json`](evals/reports/fast-20260921-175111.json),
+[`fast-20260921-173157.json`](evals/reports/fast-20260921-173157.json))
+Those two predate the mock/live toggle added afterward; reports since are named
 `{tier}-{mock|live}-{timestamp}.json` so a report's mode is unambiguous from its filename alone.
 
-**`make eval-fast` does not currently pass its own thresholds.** Two live runs against the real
-API (identical code the second time except for the fixes in commits `f5828ff`/`7ac91bb`/`a34e351`)
-surfaced two distinct, reproducible problems, detailed below: LLM verdict instability on
-judgment-heavy claims, and a hard request-timeout ceiling on the slowest search-heavy claims. Ship
-status and next steps are the user's call, not mine to resolve by further tuning the eval - see
-Known failures.
+**`make eval-fast-live` meets its own thresholds for the first time.** Pass rate, latency p95, and
+mean cost are all within `evals/thresholds.yaml`'s bar - the LLM verdict instability and timeout
+issues that failed the first two runs are addressed (moved out of the gating set, and fixed and
+confirmed at full scale, respectively; see Known failures). One case still failed on a verdict
+mismatch (`prov-001`); it isn't why the run passes or fails, since 92.3% clears the 90% floor
+either way, but it fits a pattern seen once before on a different case - worth reading Known
+failures before treating this as a clean bill of health.
 
 ## Architecture
 
@@ -156,21 +160,42 @@ it deliberately, not routinely - see Evaluation below.
   rubric-based judge only after the deterministic cases pass") - deterministic substring matching
   is structurally the wrong tool for this subset of claims, not a case that needs a better label.
 - **Non-streaming requests had a hard timeout ceiling that search-heavy claims could exceed (real,
-  reproduced on two different cases - fixed).** `src/app/llm.py` used `client.messages.create`
-  (not `.stream`) with a 120s client timeout; the SDK retries up to `max_retries` (default 2), so a
-  request that never returns data hit `APITimeoutError` at roughly 3 × 120s = 360s. This fired for
-  real on `prov-005` (Nebraska leaf-bag fee) mid-session, and again on `stat-006` (a claim needing
-  several searches) in the second live run - two different claims across two runs, not one fluke.
-  Fixed by switching evaluator research calls to `client.messages.stream(...)` +
-  `.get_final_message()` (commits `737917f`/`0563054`); a targeted live sanity check against 3
-  claims, including the exact `stat-006` claim that previously timed out, completed with no
-  `APITimeoutError` in any of the 3 - see
-  [`docs/sessions/2026-09-21-streaming-fix.md`](docs/sessions/2026-09-21-streaming-fix.md). Not yet
-  re-confirmed against a full `make eval-fast-live` run (only the targeted sanity check, to avoid
-  spending real API cost on a full run before the fix's shape was confirmed). With the timeout no
-  longer the binding constraint, the next one for a heavy claim is `Config.max_cost_usd` - the
-  sanity check hit it once ($0.319 on a single evaluator call), which is why the default was raised
-  to $0.50 (see Security and cost notes).
+  reproduced on two different cases - fixed, now confirmed at full scale).** `src/app/llm.py` used
+  `client.messages.create` (not `.stream`) with a 120s client timeout; the SDK retries up to
+  `max_retries` (default 2), so a request that never returns data hit `APITimeoutError` at roughly
+  3 × 120s = 360s. This fired for real on `prov-005` (Nebraska leaf-bag fee) mid-session, and again
+  on `stat-006` (a claim needing several searches) in the second live run - two different claims
+  across two runs, not one fluke. Fixed by switching evaluator research calls to
+  `client.messages.stream(...)` + `.get_final_message()` (commits `737917f`/`0563054`); a targeted
+  live sanity check against 3 claims, including the exact `stat-006` claim that previously timed
+  out, completed with no `APITimeoutError` in any of the 3 - see
+  [`docs/sessions/2026-09-21-streaming-fix.md`](docs/sessions/2026-09-21-streaming-fix.md).
+  **Confirmed at full scale on 2026-09-23:** all 13 cases in `fast-live-20260923-204027.json`
+  completed with no `APITimeoutError`, including `prov-005` itself - the same claim that hit the
+  old ~360s ceiling in run 2 - now finishing at 229.6s, comfortably under the 300s threshold. With
+  the timeout no longer the binding constraint, the next one for a heavy claim is
+  `Config.max_cost_usd` - the earlier sanity check hit it once ($0.319 on a single evaluator call),
+  which is why the default was raised to $0.50 (see Security and cost notes).
+- **`provenance_only` evaluator sometimes returns `not supported` instead of `provenance-only` when
+  it finds a weak, tangential source (real, reproduced on two different cases across two live runs
+  - not gated, not fixed).** Both instances share a shape: the evaluator finds a real search result
+  that shares a name or keyword with the claim but doesn't actually corroborate or refute it (a
+  same-named but unrelated viral video, an unrelated pre-existing municipal fee), and treats that
+  weak tangential signal as grounds for `not supported` rather than the more honest
+  `provenance-only` ("can't be traced either way") that sibling cases with equally thin evidence
+  correctly reach.
+  - `prov-005` (Nebraska leaf-bag fee): returned `not supported` against expected `provenance-only`
+    in the second 15-case live run; passed as `provenance-only` in the 2026-09-23 run.
+  - `prov-001` (Marrow Creek, Montana eels): returned `not supported` against expected
+    `provenance-only` in the 2026-09-23 run - the one failure in an otherwise 12/13 pass.
+
+  Unlike the `stat-003`/`stat-004` instability above, this hasn't yet recurred on the *same* case
+  twice, so it isn't confirmed as run-to-run flakiness on one claim - it could equally be a
+  systematic prompt issue that surfaces on whichever provenance case has the weakest tangential
+  match that run. Worth a closer look before the next live run: either a prompt tweak (tighten what
+  `provenance_only` counts as a genuine negative signal vs. an unrelated same-name hit) or evidence
+  it belongs alongside the known-unstable cases. Left in the gating set for now, per this repo's own
+  rule against editing eval cases to make a failure quietly go away.
 - **No literature/source-quality weighting.** The two implemented evaluators treat "found a
   primary source" and "found independent corroboration" as the bar; they don't distinguish a
   peer-reviewed study from a press release, which `scientific_empirical`'s deferred evaluator
@@ -184,8 +209,8 @@ it deliberately, not routinely - see Evaluation below.
   `stop_reason: "max_tokens"` instead of returning a truncated verdict. Fixed by raising
   `EVALUATOR_MAX_TOKENS` to 12,000 (commit `f5828ff`); in run 2 this specific failure mode did not
   recur (`prov-005` completed, at 311.7s, with a `not supported` verdict against an expected
-  `provenance-only` - a separate case-level mismatch, not the same `stat-003`/`stat-004`
-  instability documented above, and `prov-005` was not moved out of the gating set).
+  `provenance-only` - see the `provenance_only` verdict-mismatch pattern above; `prov-005` was not
+  moved out of the gating set, and passed cleanly in the 2026-09-23 run).
 
 ## Security and cost notes
 
@@ -205,6 +230,10 @@ it deliberately, not routinely - see Evaluation below.
   $0.25 placeholder once the streaming fix let heavy claims actually reach the cost check instead
   of timing out first - the live sanity check hit $0.319 and $0.183 on the same claim across two
   runs, both over the old cap; see the streaming-fix session doc).
+- `max_cost_usd` bounds each case independently, not a run's aggregate spend - `evals/run.py`'s
+  concurrent scoring (5 workers) doesn't change this, since each case still pays for its own calls.
+  Nothing in this repo bounds total spend across a run. A $20/month spend limit was set on the
+  Anthropic Console workspace on 2026-09-23 as an account-level backstop ahead of any in-repo one.
 
 ## Design decisions
 
@@ -222,9 +251,13 @@ Short decision records live in [`docs/adr/`](docs/adr/):
   depth (or routing simple claims through a lower effort level) could cut the tail latency
   documented above without touching evidence quality on the claims that actually need the full
   budget.
-- Done: evaluator research calls now stream (see Known failures) - highest-priority item from the
-  prior version of this list. Next: confirm it against a full `make eval-fast-live` run (only a
-  targeted 3-claim sanity check so far) before calling the timeout issue closed.
+- Done: evaluator research calls now stream, and this is now confirmed against a full
+  `make eval-fast-live` run (13/13 cases, no `APITimeoutError` - see Known failures). The timeout
+  issue is closed as of 2026-09-23.
+- New from the 2026-09-23 full run: the `provenance_only` `not supported`-vs-`provenance-only`
+  mismatch (see Known failures) has now shown on two different cases across two live runs. Worth a
+  focused look before the next live run - either a prompt tweak or confirmation it's genuine
+  run-to-run instability like `stat-003`/`stat-004`.
 - Not something to fix by re-labeling eval cases, and not gated on anymore: `stat-003`/`stat-004`
   (now in `evals/cases/known-unstable/`) show real run-to-run verdict instability on claims with
   genuine `mixed`-vs-`supported`/`not supported` ambiguity. The fix is the v1 rubric-based judge
