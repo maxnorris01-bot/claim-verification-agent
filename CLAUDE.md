@@ -28,6 +28,16 @@ Write `docs/sessions/<YYYY-MM-DD>-<short-slug>.md` before handing off, even if n
 - Open questions or things you'd flag for review before this merges
 - Exact next command the user should run (e.g. `git diff main`, `make eval-fast`)
 
+## Working notes and decisions log
+`docs/working-notes-and-decisions.md` is a different, longer-lived record than the session docs
+above. Session docs narrate one sitting's diff; the working notes log is a short, durable list of
+decisions (with the reasoning, not just the choice) and open items worth remembering - meant to be
+skimmed months later, not read start to end. Update it whenever a real decision actually gets made
+(scope, sequencing, what to defer and why, a tradeoff picked between options) - not just as an
+end-of-session ritual. If something is already fully written up elsewhere (a technical fix in a
+session doc, a bug in the README's Known Failures, a design tradeoff in an ADR), link to it here
+rather than duplicating the detail.
+
 ## Conventions
 - Conventional Commits (`feat:`, `fix:`, `eval:`, `docs:`, `chore:`).
 - One logical change per commit; small PRs.
