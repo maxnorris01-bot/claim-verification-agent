@@ -42,26 +42,25 @@ Every claim below is backed by a reproducible run. Reports live in [`evals/repor
 
 | Claim | Evidence | Result |
 |-------|----------|--------|
-| Meets task quality bar | `make eval-fast-live`, 13 cases | **92.3%** pass rate (12/13) — meets the 90% threshold |
-| Handles failures gracefully | 2 unimplemented-tier + 2 edge cases, all pass across all three live runs | 4/4 degrade to an explicit Verdict, no crashes |
-| Cost per claim | Mean over 13 cases | **$0.088** (threshold ≤$0.10, met); $1.15 total for the run |
-| Latency | p95 over 13 cases | **229.6s** (threshold ≤300s, met) |
+| Meets task quality bar | `make eval-fast-live`, 13 cases | **100%** pass rate (13/13) — meets the 90% threshold |
+| Handles failures gracefully | 2 unimplemented-tier + 2 edge cases, all pass across all four live runs | 4/4 degrade to an explicit Verdict, no crashes |
+| Cost per claim | Mean over 13 cases | **$0.071** (threshold ≤$0.10, met); $0.92 total for the run |
+| Latency | p95 over 13 cases | **120.6s** (threshold ≤300s, met) |
 
-Report: [`evals/reports/fast-live-20260923-204027.json`](evals/reports/fast-live-20260923-204027.json)
-(third live run - first with concurrent case scoring, the streaming fix, and the 13-case
-known-unstable-excluded set all active together; supersedes the two earlier 15-case runs:
-[`fast-20260921-175111.json`](evals/reports/fast-20260921-175111.json),
+Report: [`evals/reports/fast-live-20260923-205258.json`](evals/reports/fast-live-20260923-205258.json)
+(fourth live run - first with `provenance_only` prompt v2; supersedes
+[`fast-live-20260923-204027.json`](evals/reports/fast-live-20260923-204027.json) and the two
+earlier 15-case runs: [`fast-20260921-175111.json`](evals/reports/fast-20260921-175111.json),
 [`fast-20260921-173157.json`](evals/reports/fast-20260921-173157.json))
-Those two predate the mock/live toggle added afterward; reports since are named
+The two 15-case runs predate the mock/live toggle added afterward; reports since are named
 `{tier}-{mock|live}-{timestamp}.json` so a report's mode is unambiguous from its filename alone.
 
-**`make eval-fast-live` meets its own thresholds for the first time.** Pass rate, latency p95, and
-mean cost are all within `evals/thresholds.yaml`'s bar - the LLM verdict instability and timeout
-issues that failed the first two runs are addressed (moved out of the gating set, and fixed and
-confirmed at full scale, respectively; see Known failures). One case still failed on a verdict
-mismatch (`prov-001`); it isn't why the run passes or fails, since 92.3% clears the 90% floor
-either way, but it fits a pattern seen once before on a different case - worth reading Known
-failures before treating this as a clean bill of health.
+**`make eval-fast-live` passes clean: 13/13, all thresholds met.** The `provenance_only` prompt fix
+(see Known failures) resolved the one failure from the previous run - `prov-001` and `prov-005`
+both correctly return `provenance-only` now. As with any single live run, this doesn't rule out
+recurrence the way two runs would (see the `stat-003`/`stat-004` instability below, which took a
+second run to confirm as real instability rather than a one-off) - worth treating "12/13" from the
+prior run and "13/13" here as one data point each, not a closed case yet.
 
 ## Architecture
 
@@ -176,26 +175,32 @@ it deliberately, not routinely - see Evaluation below.
   the timeout no longer the binding constraint, the next one for a heavy claim is
   `Config.max_cost_usd` - the earlier sanity check hit it once ($0.319 on a single evaluator call),
   which is why the default was raised to $0.50 (see Security and cost notes).
-- **`provenance_only` evaluator sometimes returns `not supported` instead of `provenance-only` when
-  it finds a weak, tangential source (real, reproduced on two different cases across two live runs
-  - not gated, not fixed).** Both instances share a shape: the evaluator finds a real search result
-  that shares a name or keyword with the claim but doesn't actually corroborate or refute it (a
-  same-named but unrelated viral video, an unrelated pre-existing municipal fee), and treats that
-  weak tangential signal as grounds for `not supported` rather than the more honest
-  `provenance-only` ("can't be traced either way") that sibling cases with equally thin evidence
-  correctly reach.
+- **`provenance_only` evaluator sometimes returned `not supported` instead of `provenance-only`
+  when it found a weak, tangential source (real, reproduced on two different cases across two live
+  runs - fixed via a prompt change, confirmed once).** Both instances shared a shape: the evaluator
+  found a real search result that shares a name or keyword with the claim but doesn't actually
+  corroborate or refute it (a same-named but unrelated viral video, an unrelated pre-existing
+  municipal fee), and treated that weak tangential signal as grounds for `not supported` rather than
+  the more honest `provenance-only` ("can't be traced either way") that sibling cases with equally
+  thin evidence correctly reached. In both failures, the model's own `reasoning` field explicitly
+  hedged ("cannot definitively prove non-existence," "cannot be confirmed or refuted directly") yet
+  still output `not supported` - the verdict didn't follow the model's own stated evidence
+  assessment.
   - `prov-005` (Nebraska leaf-bag fee): returned `not supported` against expected `provenance-only`
-    in the second 15-case live run; passed as `provenance-only` in the 2026-09-23 run.
+    in the second 15-case live run; passed as `provenance-only` from the next run onward.
   - `prov-001` (Marrow Creek, Montana eels): returned `not supported` against expected
-    `provenance-only` in the 2026-09-23 run - the one failure in an otherwise 12/13 pass.
+    `provenance-only` in the third live run (13-case, `provenance_only` prompt v1) - the one
+    failure in an otherwise 12/13 pass.
 
-  Unlike the `stat-003`/`stat-004` instability above, this hasn't yet recurred on the *same* case
-  twice, so it isn't confirmed as run-to-run flakiness on one claim - it could equally be a
-  systematic prompt issue that surfaces on whichever provenance case has the weakest tangential
-  match that run. Worth a closer look before the next live run: either a prompt tweak (tighten what
-  `provenance_only` counts as a genuine negative signal vs. an unrelated same-name hit) or evidence
-  it belongs alongside the known-unstable cases. Left in the gating set for now, per this repo's own
-  rule against editing eval cases to make a failure quietly go away.
+  **Fix**: `prompts/provenance_only.md` bumped to v2. The verdict-label definitions now explicitly
+  require that contradicting evidence specifically address the claim's actual subject, not merely
+  share a name or keyword, and add a check before choosing `not supported`/`mixed`: if the model's
+  own reasoning would say the evidence doesn't confirm or refute the claim, the verdict must be
+  `provenance-only`. The fourth live run (`fast-live-20260923-205258.json`, prompt v2) passed
+  `prov-001` and `prov-005` both correctly, and all 13 cases 13/13. This is one confirming run, not
+  two - unlike `stat-003`/`stat-004` below, which needed a second run to establish real instability,
+  a single clean run after a prompt change doesn't yet prove the fix holds under recurrence. Worth
+  re-checking on the next live run before calling this fully closed.
 - **No literature/source-quality weighting.** The two implemented evaluators treat "found a
   primary source" and "found independent corroboration" as the bar; they don't distinguish a
   peer-reviewed study from a press release, which `scientific_empirical`'s deferred evaluator
@@ -254,10 +259,10 @@ Short decision records live in [`docs/adr/`](docs/adr/):
 - Done: evaluator research calls now stream, and this is now confirmed against a full
   `make eval-fast-live` run (13/13 cases, no `APITimeoutError` - see Known failures). The timeout
   issue is closed as of 2026-09-23.
-- New from the 2026-09-23 full run: the `provenance_only` `not supported`-vs-`provenance-only`
-  mismatch (see Known failures) has now shown on two different cases across two live runs. Worth a
-  focused look before the next live run - either a prompt tweak or confirmation it's genuine
-  run-to-run instability like `stat-003`/`stat-004`.
+- Done: the `provenance_only` `not supported`-vs-`provenance-only` mismatch (see Known failures)
+  got a prompt fix (`prompts/provenance_only.md` v2), confirmed clean on one live run (13/13,
+  `prov-001` and `prov-005` both correct). Next: treat this as one data point, not closed - watch
+  the next live run for recurrence before considering it fully resolved.
 - Not something to fix by re-labeling eval cases, and not gated on anymore: `stat-003`/`stat-004`
   (now in `evals/cases/known-unstable/`) show real run-to-run verdict instability on claims with
   genuine `mixed`-vs-`supported`/`not supported` ambiguity. The fix is the v1 rubric-based judge
