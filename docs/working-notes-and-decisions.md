@@ -38,6 +38,26 @@ portfolio project without real production traffic, investing in them isn't worth
 Revisit if the case count grows past ~15 or there's an actual reason to want a scheduled,
 more-thorough-but-less-frequent check.
 
+**2026-09-24 - Provenance_only prompt: v2 did NOT hold; v3 provisionally does.** The caution in the
+2026-09-23 entry below was right. The second live run under v2 (`fast-live-20260924-210331.json`)
+failed 11/13: `prov-005` regressed to `not supported`, using unrelated municipal and state fees as
+"contradicting" evidence while its own `origin_trace` said no origin was found. Chose to write a
+tighter prompt (v3: explicit list of what does not count as contradicting evidence, plus a required
+final reasoning-vs-verdict check) rather than just rerun v2 again, since a repeat run of unchanged
+code adds a noisy sample and no fix. Tested `prov-005` in isolation 4x (all `provenance-only`), then
+one full live run at 13/13 (`fast-live-20260924-212213.json`). Still a small sample; watch it on
+future live runs. Details: `docs/sessions/2026-09-24-provenance-prompt-v3.md`.
+
+**2026-09-24 - `stat-005` failed once (`mixed` vs expected `not supported`), then passed; not moved
+to `known-unstable/` yet.** Same code and prompt both times, so it is model instability, same shape
+as `stat-003`/`stat-004`. Decided not to move a case off one failure in four runs; if it flips
+again, move it in its own `eval:` commit. Never edit the expected label to make it pass.
+
+**2026-09-24 - Eval runner prints per-case progress to stderr.** `evals/run.py` now emits
+`[start]`/`[done N/M]` lines, because a multi-minute live run with a silent terminal is hard to tell
+apart from a hang. Output-only change; scoring, reports and thresholds unchanged. For ad hoc loops
+of `scripts/check_claim.py`, prefer `echo` status lines plus `tee` over redirecting to a file.
+
 **2026-09-23 - Provenance_only prompt fix, confirmed once, not twice.** `prov-001` and `prov-005`
 were returning `not supported` when they should have returned `provenance-only` (evaluator treated
 a tangential, irrelevant search hit as a negative signal). Fixed via a prompt-only change
@@ -68,11 +88,11 @@ get re-flagged as a surprise security issue in a future session.
 
 - Merge `feat/v0-pipeline` into `main` - pushed to GitHub, PR link generated, never opened or
   merged. Decide: merge now to mark v0 "shipped," or keep developing on the branch a while longer.
-- A second live run to confirm the `provenance_only` fix holds (see decision above) - not urgent,
-  but do it before fully trusting this as closed.
+- Keep watching the `provenance_only` fix (v3) on future live runs - one full clean run plus 4/4 on
+  `prov-005` isolated, not yet a long track record (see 2026-09-24 decision above).
 - `prov-003`'s raw `reasoning` output had duplicated phrasing and stray trailing characters in the
-  2026-09-23 live report - didn't fail the case (the required substrings still matched), never
-  investigated. Worth a look if it recurs; not investigated as of this writing.
+  2026-09-23 live report - didn't fail the case, never investigated. Did not recur in the
+  2026-09-24 runs (clean text both times), so likely a one-off; leave unless it shows up again.
 - Adversarial prompt-injection eval cases - named in the README's "What's next," never built.
 - Port the template's `max_total_cost_usd` aggregate-spend check back into this repo's own
   `evals/run.py` (see the 2026-09-21 decision above) - the template now has this, this repo

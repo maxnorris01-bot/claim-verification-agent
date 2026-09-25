@@ -8,10 +8,10 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
 
 ## Up next (in priority order)
 
-- [ ] Second live eval run (`make eval-fast-live`) to confirm the `provenance_only` prompt fix
-      (v2) holds. One clean run so far (13/13); the `stat-003`/`stat-004` instability only became
-      visible as *real* instability on a second identical live run, so don't treat this fix as
-      fully proven until it's been repeated. See working-notes-and-decisions.md, 2026-09-23 entry.
+- [ ] Keep watching the `provenance_only` v3 fix on future live runs. (Second live run on
+      2026-09-24 showed v2 did not hold - 11/13, `prov-005` regressed - so v3 was written; v3 is 13/13
+      once plus 4/4 on `prov-005` isolated.) Move `stat-005` to `known-unstable/` in its own `eval:`
+      commit only if it flips again.
 - [ ] Decide: merge `feat/v0-pipeline` into `main`, or keep developing on the branch. Pushed to
       GitHub, PR link generated, never opened/merged.
 - [ ] v0 close-out walkthrough: personally run through the tool's behavior end-to-end and confirm
@@ -33,12 +33,17 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
 ## Lower priority / opportunistic
 
 - [ ] `prov-003`'s raw `reasoning` output had duplicated phrasing and stray trailing characters in
-      the 2026-09-23 live report. Didn't fail the case, never investigated. Worth a look if it
-      recurs.
+      the 2026-09-23 live report. Didn't fail the case, never investigated. Did not recur in either
+      2026-09-24 live run (clean text) - likely a one-off; worth a look only if it recurs.
 - [ ] Adversarial / prompt-injection eval cases - named in the README's "What's next," never
       built.
 
 ## Completed (most recent first)
+
+- [x] `2026-09-24` - `provenance_only` prompt v3 written and tested after the second live run
+      failed 11/13 under v2 (`prov-005` regressed, `stat-005` flipped). v3: 4/4 on `prov-005`
+      isolated, then full live run 13/13 (`fast-live-20260924-212213.json`). Also added per-case
+      progress output to `evals/run.py`. See `docs/sessions/2026-09-24-provenance-prompt-v3.md`.
 
 - [x] `2026-09-23` - Working notes and decisions log convention set up (this repo + template +
       both CLAUDE.md files).
