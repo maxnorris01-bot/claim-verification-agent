@@ -10,6 +10,15 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-24 - Eval reports: ignored by default, force-add only the ones the README cites.**
+`.gitignore` ignores `evals/reports/*.json` (every run writes a timestamped file - tracking all of
+them, including the many mock-mode ones, would be noise), and until now that meant the README's
+report links were all broken on GitHub. Chose to keep ignoring by default but `git add -f` the six
+reports the README actually cites (about 150KB total), so the results table is verifiable by
+clicking through, including the failing 11/13 run that shows the v2 regression. Consequence: when a
+future run gets cited in the README, it needs `git add -f` too - a plain `git add` will silently
+skip it.
+
 **2026-09-24 - Portfolio hosting: one site, per-project tabs.** All three portfolio projects will
 live on a single website: a homepage explaining each project, some navigation, each project on its
 own tab/section. Not decided yet: the actual stack/hosting provider. Consequence worth keeping in
