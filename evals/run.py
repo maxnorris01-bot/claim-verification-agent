@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -133,8 +134,27 @@ def main() -> int:
         print("No eval cases found.", file=sys.stderr)
         return 1
 
+    total = len(cases)
+    finished = 0
+    progress_lock = threading.Lock()
+
     def _score(case: dict[str, Any]) -> dict[str, Any]:
-        return score_case(case, config)
+        # Progress goes to stderr so the JSON summary on stdout stays clean. Cases run
+        # MAX_WORKERS at a time, so "start" lines show what's in flight and "done" lines arrive in
+        # completion order, not case order (the final report is still in case order).
+        nonlocal finished
+        print(f"[start] {case['id']}", file=sys.stderr, flush=True)
+        result = score_case(case, config)
+        with progress_lock:
+            finished += 1
+            status = "PASS" if result["passed"] else "FAIL"
+            print(
+                f"[done {finished}/{total}] {result['id']} {status} "
+                f"{result['latency_s']:.1f}s ${result['cost_usd']:.3f}",
+                file=sys.stderr,
+                flush=True,
+            )
+        return result
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         # .map preserves input order in its results, regardless of completion order, so the
