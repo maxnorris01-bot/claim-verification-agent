@@ -10,6 +10,14 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-24 - v0 walkthrough kept short on purpose.** Max ran two live claims by hand (an
+unimplemented-tier one and a well-supported statistical one) and stopped there, judging that more
+hands-on testing is better done once the actual site/tool is up rather than through the CLI. Both
+behaved correctly. Findings (trailing-character bug, `not-implemented` output wording) went into
+`docs/todo.md`. Consequence: the close-out was based on a thin sample, so nothing here proves the
+search-based tiers read well on nuanced claims - the eval runs cover verdict correctness, not
+output readability.
+
 **2026-09-24 - Eval reports: ignored by default, force-add only the ones the README cites.**
 `.gitignore` ignores `evals/reports/*.json` (every run writes a timestamped file - tracking all of
 them, including the many mock-mode ones, would be noise), and until now that meant the README's
@@ -99,9 +107,12 @@ get re-flagged as a surprise security issue in a future session.
   merged. Decide: merge now to mark v0 "shipped," or keep developing on the branch a while longer.
 - Keep watching the `provenance_only` fix (v3) on future live runs - one full clean run plus 4/4 on
   `prov-005` isolated, not yet a long track record (see 2026-09-24 decision above).
-- `prov-003`'s raw `reasoning` output had duplicated phrasing and stray trailing characters in the
-  2026-09-23 live report - didn't fail the case, never investigated. Did not recur in the
-  2026-09-24 runs (clean text both times), so likely a one-off; leave unless it shows up again.
+- Stray trailing characters in evaluator `reasoning`: seen on `prov-003` (2026-09-23) and again as
+  a stray `'` on a `statistical_data` claim (Gallup 5.6%) in the 2026-09-24 walkthrough. Cosmetic so
+  far, never affected a verdict, but on two tiers now - probably systematic; investigate.
+- Output formatting: the walkthrough noted `not-implemented` verdicts mix the system message with the
+  classifier's own take in `reasoning`, and `confidence: "low"` on a non-evaluation is ambiguous.
+  See `docs/todo.md`.
 - Adversarial prompt-injection eval cases - named in the README's "What's next," never built.
 - Port the template's `max_total_cost_usd` aggregate-spend check back into this repo's own
   `evals/run.py` (see the 2026-09-21 decision above) - the template now has this, this repo

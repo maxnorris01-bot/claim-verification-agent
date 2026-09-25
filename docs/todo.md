@@ -14,10 +14,20 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       commit only if it flips again.
 - [ ] Decide: merge `feat/v0-pipeline` into `main`, or keep developing on the branch. Pushed to
       GitHub, PR link generated, never opened/merged.
-- [ ] v0 close-out walkthrough: personally run through the tool's behavior end-to-end and confirm
-      it looks and behaves as expected. (Scoped to Max only, not outside testers - see
+- [x] v0 close-out walkthrough (`2026-09-24`, deliberately short): ran two claims live via
+      `scripts/check_claim.py` - an unimplemented-tier one (intermittent fasting) and a
+      well-supported statistical one (Gallup 5.6%). Both behaved correctly. Stopped there on
+      purpose; more hands-on testing happens once the actual site/tool is up. Observations
+      feeding the formatting item below. (Scoped to Max only - see
       working-notes-and-decisions.md, 2026-09-24 entry.)
-- [ ] Implement output formatting (not yet started).
+- [ ] Implement output formatting (not yet started). Observations from the walkthrough to cover:
+      (1) for `not-implemented` verdicts, `reasoning` mixes the system's "not evaluated" message
+      with the classifier's own take on the claim, which reads close to a verdict - consider a
+      plain user-facing message plus a separate classifier-reasoning field, or hiding it;
+      (2) `confidence: "low"` on a non-evaluation is ambiguous - consider null/n-a; (3) output is
+      raw JSON, fine as an API response but not human-facing.
+- [ ] Investigate the stray trailing character bug in `reasoning` (see Lower priority below) -
+      now seen on two tiers, so probably worth doing before or alongside formatting.
 - [ ] Port the template's `max_total_cost_usd` aggregate run-level spend check back into this
       repo's own `evals/run.py` - the template has it now, this repo still relies solely on the
       $20/month Anthropic Console limit as a backstop.
@@ -32,9 +42,12 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
 
 ## Lower priority / opportunistic
 
-- [ ] `prov-003`'s raw `reasoning` output had duplicated phrasing and stray trailing characters in
-      the 2026-09-23 live report. Didn't fail the case, never investigated. Did not recur in either
-      2026-09-24 live run (clean text) - likely a one-off; worth a look only if it recurs.
+- [ ] Stray trailing characters in `reasoning`: first seen on `prov-003` (2026-09-23 live report,
+      with duplicated phrasing), then a stray `'` at the end of `reasoning` on a `statistical_data`
+      claim (Gallup 5.6%) during the 2026-09-24 walkthrough. Never affected a verdict or a case
+      pass/fail, but now seen on two tiers, so probably a systematic structured-output or parsing
+      quirk, not a one-off. Not yet investigated (start with `src/app/evaluators.py` and the
+      trace in `runs/trace.jsonl`).
 - [ ] Adversarial / prompt-injection eval cases - named in the README's "What's next," never
       built.
 
