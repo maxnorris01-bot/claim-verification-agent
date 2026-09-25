@@ -38,6 +38,13 @@ end-of-session ritual. If something is already fully written up elsewhere (a tec
 session doc, a bug in the README's Known Failures, a design tradeoff in an ADR), link to it here
 rather than duplicating the detail.
 
+## To-do list
+`docs/todo.md` is the running checklist - what's next, in priority order, checked off with a short
+note as items get done. Different from the working notes log above: that's decisions and reasoning,
+this is just task state. Keep it current as priorities shift, not just when items complete - it's
+meant to answer "what do I work on next" after time away without having to reconstruct it from
+session docs.
+
 ## Conventions
 - Conventional Commits (`feat:`, `fix:`, `eval:`, `docs:`, `chore:`).
 - One logical change per commit; small PRs.
