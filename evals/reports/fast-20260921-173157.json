@@ -1,0 +1,170 @@
+{
+  "summary": {
+    "tier": "fast",
+    "prompt_versions": {
+      "classifier": "1",
+      "provenance_only": "1",
+      "statistical_data": "1"
+    },
+    "n_cases": 15,
+    "pass_rate": 0.8,
+    "latency_p95_s": 240.006,
+    "mean_cost_usd": 0.0776
+  },
+  "failures": [
+    "pass_rate 80.00% < 90.00%",
+    "latency_p95 240.01s > 60.0s"
+  ],
+  "results": [
+    {
+      "id": "stat-001",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 34.5622158079932,
+      "cost_usd": 0.090454,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"5.6% of U.S. adults identified as LGBT in 2020\", \"source_url\": \"https://news.gallup.com/poll/329708/lgbt-identification-rises-latest-estimate.aspx\", \"note\": \"Gallup's original 2021 release states 'Gallup finds 5.6% of U.S. adults identifying as lesbian, gay, bisexual or transgender' based on 2020 data.\"}, {\"claim_snippet\": \"5.6% ... in 2020\", \"source_url\": \"https://news.gallup.com/poll/389792/lgbt-identification-ticks-up.aspx\", \"note\": \"A later Gallup report confirms the trend line, noting 7.1% in 2021, 'up from 5.6% in 2020, 4.5% in 2017'.\"}], \"origin_trace\": \"Original source: Gallup, 'LGBT Identification Rises to 5.6% in Latest U.S. Estimate' (news.gallup.com/poll/329708), published 2021 based on 2020 survey data. This is a direct primary-source match for the claim.\", \"reasoning\": \"The claim's figure, attribution to Gallup, population (U.S. adults), year (2020), and measure (self-identification as LGBT) all match the primary Gallup release exactly. No causal language or scope distortion is present\\u2014the claim is a straightforward restatement of the survey finding. A subsequent Gallup report independently corroborates the 5.6% figure as the 2020 data point in their ongoing trend series.\"}"
+    },
+    {
+      "id": "stat-002",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 48.93247340800008,
+      "cost_usd": 0.080749,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://www.who.int/news-room/fact-sheets/detail/suicide\", \"note\": \"WHO's own fact sheet states verbatim: 'Every year more than 700 000 people take their own life and there are many more people who attempt suicide.'\"}, {\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://www.paho.org/en/one-100-deaths-suicide\", \"note\": \"PAHO/WHO reports for 2019 that 'more than 700 000 people died by suicide: one in every 100 deaths', matching the same figure and attribution.\"}, {\"claim_snippet\": \"more than 700,000\", \"source_url\": \"https://news.un.org/en/story/2025/09/1165817\", \"note\": \"A more recent 2025 UN News piece citing WHO updates the figure to 'more than 720,000 people' annually, showing the estimate has since risen slightly.\"}, {\"claim_snippet\": \"more than 700,000\", \"source_url\": \"https://www.facebook.com/WHO/posts/every-year-more-than-727-000-lives-are-lost-to-suicide-behind-each-number-is-a-s/1366319848860735/\", \"note\": \"WHO's own social media post gives an updated figure of 'more than 727 000 lives are lost to suicide' each year, indicating the statistic is periodically revised upward.\"}], \"origin_trace\": \"Primary source: World Health Organization fact sheet 'Suicide' (who.int/news-room/fact-sheets/detail/suicide), which states verbatim that 'Every year more than 700 000 people take their own life.' This figure has been WHO's standard cited estimate for several years (originally tied to 2019 global data), and is directly and repeatedly attributed to WHO in secondary sources like PAHO.\", \"reasoning\": \"The claim's figure and attribution match WHO's own official fact sheet almost word-for-word, with no distortion in scope, population, or causal language\\u2014it is a straightforward global mortality estimate, not a causal claim about why people die. However, more recent WHO-linked communications (2025) cite updated figures of 720,000\\u2013727,000, suggesting the '700,000' figure, while still accurate as a floor ('more than'), reflects slightly older WHO estimates rather than the very latest ones. This is a minor temporal drift rather than a substantive misrepresentation, so the claim remains supported.\"}"
+    },
+    {
+      "id": "stat-003",
+      "category": "statistical_data",
+      "passed": false,
+      "latency_s": 23.741813271975843,
+      "cost_usd": 0.09091400000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"mixed\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"about 1 in 36 eight-year-olds in the U.S. were identified with autism spectrum disorder in 2020\", \"source_url\": \"https://www.cdc.gov/media/releases/2023/p0323-autism.html\", \"note\": \"CDC states 'One in 36 (2.8%) 8-year-old children have been identified with ASD' based on data from 11 ADDM Network communities, explicitly noting these communities 'are not representative of the entire United States.'\"}, {\"claim_snippet\": \"1 in 36 eight-year-olds ... in 2020\", \"source_url\": \"https://pubmed.ncbi.nlm.nih.gov/36952288/\", \"note\": \"Peer-reviewed MMWR summary: 'the overall ASD prevalence was 27.6 per 1,000 (one in 36) children aged 8 years' across the 11 ADDM sites for surveillance year 2020.\"}, {\"claim_snippet\": \"identified with autism spectrum disorder in 2020\", \"source_url\": \"https://archive.cdc.gov/www_cdc_gov/ncbddd/autism/addm-community-report/executive-summary.html\", \"note\": \"CDC's own community report highlights '1 in 36 8-year-old children identified with ASD in 2020' but footnotes it as 'Based on tracking within 11 communities in the United States,' not a national sample.\"}, {\"claim_snippet\": \"1 in 36 eight-year-olds in the U.S.\", \"source_url\": \"https://www.hopebridge.com/blog/prevalence-of-autism-1-in-36-children/\", \"note\": \"Secondary source reiterates the figure is 'an estimated rate of autism in the United States, based on the 11 states that were surveyed,' not a full national census.\"}], \"origin_trace\": \"Original source: CDC MMWR Surveillance Summary (Maenner et al., March 2023), 'Prevalence and Characteristics of Autism Spectrum Disorder Among Children Aged 8 Years \\u2014 ADDM Network, 11 Sites, United States, 2020,' reporting a prevalence of 1 in 36 (27.6 per 1,000) 8-year-olds with ASD, based on surveillance in 11 U.S. communities during 2020.\", \"reasoning\": \"The core figure (1 in 36) and the year (2020) exactly match the CDC/ADDM Network finding, and the claim's numbers are accurate. However, the claim frames this as a finding about 'the U.S.' broadly, whereas the CDC explicitly states the ADDM Network's 11 surveillance sites are not a representative sample of the entire United States, so the true scope is narrower than implied. This is a common but real framing drift in how the statistic is popularly reported, making the claim technically correct on the numbers but overstated in geographic scope.\"}"
+    },
+    {
+      "id": "stat-004",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 240.00604498700704,
+      "cost_usd": 0.12267399999999999,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"mixed\", \"confidence\": \"high\", \"evidence\": [], \"origin_trace\": \"\", \"reasoning\": \"\"}"
+    },
+    {
+      "id": "stat-005",
+      "category": "statistical_data",
+      "passed": false,
+      "latency_s": 31.232150799012743,
+      "cost_usd": 0.096383,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://www.spring.org.uk/2023/02/what-percentage-communication-nonverbal.php\", \"note\": \"Describes the 93% figure as \\\"a myth deriving from studies by Albert Mehrabian\\\", not a general finding about all communication.\"}, {\"claim_snippet\": \"Research by Albert Mehrabian showed\", \"source_url\": \"https://www.psychologytoday.com/us/blog/surprise/202003/the-body-language-myth\", \"note\": \"Traces the number to a 1967 Mehrabian and Wiener study measuring judgments of *feelings/attitudes* from single words, not general communication content.\"}, {\"claim_snippet\": \"93% is nonverbal\", \"source_url\": \"https://mohit-chhabra.medium.com/93-of-our-communication-this-is-wrong-caf55b7f3015\", \"note\": \"Notes Mehrabian himself says the 7-38-55 split applies only to communication of feelings and attitudes, especially when verbal and nonverbal cues conflict, not to all communication.\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://publicwords.com/2009/07/23/debunking-the-debunkers-the-mehrabian-myth-explained-correctly/\", \"note\": \"States plainly that \\\"Mehrabian never said that 93% of what we say is non-verbal\\\" in the general sense the claim implies.\"}, {\"claim_snippet\": \"total meaning... 7 percent verbal, 38 percent vocal, and 55 percent facial\", \"source_url\": \"https://cornerstone.lib.mnsu.edu/cgi/viewcontent.cgi?article=1000&context=ctamj\", \"note\": \"Academic paper calling the 7-38-55 formula an 'urban legend' as commonly cited, tracing its narrow origin and overextension.\"}], \"origin_trace\": \"The earliest source is Mehrabian and Wiener's 1967 experiments (and Mehrabian's related 1967 studies with Ferris), which measured how listeners judged a speaker's *feelings/attitudes* (liking/disliking) from single spoken words when tone of voice and facial expression conflicted with the word's meaning, yielding the 7%-38%-55% breakdown. This narrow, specific finding was later generalized in popular culture into the sweeping claim that 93% of 'all human communication' is nonverbal, a generalization Mehrabian himself explicitly rejected.\", \"reasoning\": \"The 93% figure does trace back to real Mehrabian research, but the claim distorts it substantially: the original studies concerned only the communication of feelings and attitudes under conditions of verbal-nonverbal inconsistency, not communication in general, and Mehrabian himself has publicly disavowed the broad interpretation. Because the claim asserts a universal scope ('all human communication') that the source explicitly does not support, and multiple independent debunking sources converge on this being a widely propagated myth, the claim is not supported as stated.\"}"
+    },
+    {
+      "id": "stat-006",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 118.66221288600354,
+      "cost_usd": 0.09873900000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://languagelog.ldc.upenn.edu/nll/?p=4488\", \"note\": \"Language Log traces this to an 'invented statistic' with no verifiable original citation ever found for the 20,000/7,000 figures.\"}, {\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://time.com/2992051/women-talk-more-study/\", \"note\": \"Time reports a University of Pennsylvania researcher tried to trace the statistic's origin and could not confirm a legitimate study behind it.\"}, {\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://abcnews.com/Technology/story?id=3348076&page=1\", \"note\": \"ABC News reports the actual peer-reviewed study (Mehl et al.) found women spoke 16,215 words/day and men 15,669 words/day, a negligible, non-significant difference.\"}, {\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://www.scientificamerican.com/article/women-talk-more-than-men/\", \"note\": \"Scientific American attributes popularization of the 20,000 vs 7,000 figures to Louann Brizendine's 'The Female Brain,' not to a rigorous study, and notes it was widely challenged.\"}, {\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://www.pimsleur.com/blog/language-ideologies-do-women-really-talk-more-than-men/\", \"note\": \"States plainly this figure 'is false but quite pervasive in popular culture' and 'is not backed by any evidence.'\"}], \"origin_trace\": \"The earliest identifiable source is Louann Brizendine's 2006 book 'The Female Brain,' which popularized the 20,000/7,000 word figures without a clear, verifiable citation; a University of Pennsylvania linguist (Mark Liberman, Language Log) later investigated and found no legitimate study underlying it, calling it an 'invented statistic.' The actual peer-reviewed study on daily word counts (Mehl et al., published in Science, 2007) found women and men speak nearly the same amount (about 16,215 vs 15,669 words/day).\", \"reasoning\": \"Multiple independent sources (Language Log, Time, ABC News, Scientific American, Pimsleur) converge on the same conclusion: the 20,000 vs 7,000 word claim has no traceable legitimate scientific origin and is widely regarded as a myth. The actual rigorous study that measured daily word counts found virtually no difference between men and women, directly contradicting the claim. Because the figure is not merely mischaracterized but actively debunked by better data, this is not a case of framing drift but a fabricated/unsupported statistic.\"}"
+    },
+    {
+      "id": "prov-001",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 21.468037329002982,
+      "cost_usd": 0.081877,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [], \"origin_trace\": \"No origin found: searched for 'Marrow Creek Montana water treatment plant eels' and '\\\"Marrow Creek\\\" Montana' and found no place called Marrow Creek in Montana, no news coverage of a water plant shutdown due to eels, and no record of the claim's origin beyond the anonymous forum post described in the prompt.\", \"reasoning\": \"Extensive web searches for 'Marrow Creek, Montana' and related terms returned no evidence that such a town or water treatment plant exists, let alone any incident involving eels found in intake pipes in 2021. Results instead surfaced unrelated Montana water systems (Whitefish, Cut Bank, Three Forks, Helena) with no mention of eels or a three-week shutdown. Since there is no credible or independent source corroborating any part of this claim, and it appears to originate solely from an anonymous forum post, it cannot be verified as true or false\\u2014only that no corroboration exists.'\"}"
+    },
+    {
+      "id": "prov-002",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 144.9939175149775,
+      "cost_usd": 0.09621900000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"Brindlemoor Foods\", \"source_url\": \"https://www.brindlemoor.com/contact-us\", \"note\": \"A website called 'Brindlemoor' exists but appears to be an unrelated small business/consultancy with a contact email; no indication it makes cereal or food products, and no connection to any leaked memo.\"}, {\"claim_snippet\": \"Brindlemoor Foods\", \"source_url\": \"https://brindlefoodco.ca/\", \"note\": \"A similarly named 'Brindle Food Co.' is a small Toronto catering/delivery company, unrelated to cereal manufacturing or the claim; likely a false-positive match on name similarity.\"}, {\"claim_snippet\": \"shrank every cereal box by 4%\", \"source_url\": \"https://www.cbc.ca/news/business/shrinkflation-government-1.6996673\", \"note\": \"Credible CBC News reporting on real shrinkflation cases (e.g., Honeycomb cereal reduced ~11.7%), but makes no mention of any company called Brindlemoor or a 4% reduction tied to a leaked memo.\"}], \"origin_trace\": \"No origin found: searched for 'Brindlemoor Foods cereal box shrink 4% leaked memo' and for 'Brindlemoor Foods' generally. No news outlet, consumer watchdog site, or company record mentions a cereal maker by this name, a leaked internal memo, or a 4% shrinkage claim. The only 'Brindlemoor' and 'Brindle Food' entities found are unrelated small businesses (a consultancy and a Toronto catering company), not cereal manufacturers.\", \"reasoning\": \"There is no credible or independent source confirming the existence of a cereal company called 'Brindlemoor Foods,' let alone a leaked memo describing a 4% box-size reduction. Shrinkflation in cereal is a well-documented, real phenomenon at other named companies (Post, Kellogg's, General Mills), which lends superficial plausibility to the genre of claim, but this specific company and memo do not appear in any search results. Because the claim traces to no identifiable source at all (not even a single low-credibility one), it cannot be confirmed or refuted, and it should be treated as provenance-only rather than true or false.\"}"
+    },
+    {
+      "id": "prov-003",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 20.901765410992084,
+      "cost_usd": 0.09411,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [], \"origin_trace\": \"No origin found: searched for 'Pellham Crossing Ohio', 'Pellham Crossing Ohio city council library', and '\\\"Pellham Crossing\\\" Ohio'. No place called Pellham Crossing, Ohio appears in Wikipedia, GNIS, Ohio municipal directories, Ohio Library Council records, or news coverage. The claim itself is only attributed to a third-hand, unnamed source (a neighbor's friend at a county clerk's office), with no date, no council member names, no developer name, and no document reference.\", \"reasoning\": \"There is no evidence that a municipality named 'Pellham Crossing, Ohio' exists at all \\u2014 it does not appear in Ohio's public library directories, GNIS place-name records, or general web search results, which would be expected to surface even a small town with an active library system. The claim is sourced entirely to unnamed hearsay (a friend-of-a-neighbor anecdote) with no council minutes, news article, or public record cited. Because the underlying place cannot even be confirmed to exist, there is nothing to corroborate or contradict directly, and no credible independent source repeats or verifies any part of the claim (the council vote count, the developer sale, or the one-dollar price). This is a case where the claim cannot be evaluated as true or false \\u2014 it simply cannot be traced to any verifiable origin or record.\"}"
+    },
+    {
+      "id": "prov-004",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 25.800374628975987,
+      "cost_usd": 0.133545,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [], \"origin_trace\": \"No origin found: searched for 'Tarn Hollow Vermont mayor', 'Tarn Hollow Vermont', and for a mayor secretly writing an anonymous bestselling 2018 mystery series. No town called Tarn Hollow, Vermont appears in any search results (only unrelated Vermont towns, geological 'tarn' definitions, and unrelated mystery novels turned up). No blog post making this claim was located either.\", \"reasoning\": \"Search results return no evidence that a town or municipality named 'Tarn Hollow, Vermont' exists at all \\u2014 Vermont mayoral lists (Burlington, Rutland, Montpelier) do not include any such place, and general searches for 'Tarn Hollow' return only geological definitions of tarns and unrelated Vermont hollows (Greenbank's Hollow, Sleepy Hollow Farm). No bestselling 2018 mystery series is linked to any real Vermont mayor in search results either. Since the underlying town cannot even be confirmed to exist, and the specific blog post could not be located, there is no credible or independent corroboration to evaluate, nor can the claim be traced to any identifiable origin.The absence of any trace of a real 'Tarn Hollow, Vermont' suggests the claim may involve a fictional or invented locale, but this cannot be stated with certainty from search alone.'\"}"
+    },
+    {
+      "id": "prov-005",
+      "category": "provenance_only",
+      "passed": false,
+      "latency_s": 64.02997907297686,
+      "cost_usd": 0.174628,
+      "steps": 2,
+      "error": "LLMOutputError('evaluator.provenance_only.research: response ended with max_tokens')",
+      "output": ""
+    },
+    {
+      "id": "unimpl-001",
+      "category": "scientific_empirical",
+      "passed": true,
+      "latency_s": 2.7272041229880415,
+      "cost_usd": 0.001075,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"scientific_empirical\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'scientific_empirical' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a claim about how the human body responds to a physical intervention (aerobic exercise) and its measurable physiological effect (resting blood pressure). It describes a mechanism and health outcome that can be tested through scientific studies and medical research.\"}"
+    },
+    {
+      "id": "unimpl-002",
+      "category": "contested_unfalsifiable",
+      "passed": true,
+      "latency_s": 1.5318476099928375,
+      "cost_usd": 0.001144,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"contested_unfalsifiable\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'contested_unfalsifiable' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a normative moral claim about whether capital punishment is ethically defensible. It expresses a value judgment that reasonable people disagree on, and no empirical evidence can definitively settle whether something is 'morally unjustifiable' since this is a philosophical position rather than a factual question.\"}"
+    },
+    {
+      "id": "edge-001",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 0.0004278109990991652,
+      "cost_usd": 0.0,
+      "steps": 0,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was empty; there is no claim to check.\"}"
+    },
+    {
+      "id": "edge-002",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 1.220360212988453,
+      "cost_usd": 0.00097,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was not a checkable claim. Classifier reasoning: This text contains only random character strings and numbers with no coherent words or meaningful assertions. There is no checkable claim being made.\"}"
+    }
+  ]
+}
