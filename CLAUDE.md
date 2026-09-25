@@ -1,5 +1,15 @@
 # CLAUDE.md
 
+## Session startup (read these in full before doing anything else)
+1. `Chat_Instructions.md` in the "Applied AI Portfolio Projects" Claude Project - collaboration
+   workflow (device-bridge file writes, hand off shell/git commands to Max, known gotchas). Read
+   once; it doesn't change per repo.
+2. This file, in full.
+3. `docs/working-notes-and-decisions.md` - durable decisions and why, most recent first.
+4. `docs/todo.md` - what's next, in priority order.
+5. The most recent file in `docs/sessions/` - what actually happened last time.
+6. `README.md`'s Results table and Known Failures section - current real numbers and known bugs.
+
 ## Commands
 - Install: `make install`
 - Lint + format check: `make lint`
