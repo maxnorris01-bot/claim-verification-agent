@@ -18,16 +18,39 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       purpose; more hands-on testing happens once the actual site/tool is up. Observations
       feeding the formatting item below. (Scoped to Max only - see
       working-notes-and-decisions.md, 2026-09-24 entry.)
-- [ ] Implement output formatting (not yet started). Observations from the walkthrough to cover:
-      (1) for `not-implemented` verdicts, `reasoning` mixes the system's "not evaluated" message
-      with the classifier's own take on the claim, which reads close to a verdict - consider a
-      plain user-facing message plus a separate classifier-reasoning field, or hiding it;
-      (2) `confidence: "low"` on a non-evaluation is ambiguous - consider null/n-a; (3) output is
-      raw JSON, fine as an API response but not human-facing.
+- [ ] **PERFORMANCE - gates production.** MVP target per live claim: 5s or less and 2 cents or
+      less; stretch 2s and 1 cent; if MVP isn't met, the project doesn't ship to production (see
+      working-notes-and-decisions.md, 2026-09-26). Baseline: p95 125.7s, mean $0.083. Steps:
+      (a) env-var experiments on the 13 cases: `APP_WEB_SEARCH_TOOL=web_search_20250305`,
+      `APP_MAX_SEARCHES=2`, `APP_EVALUATOR_EFFORT=low`, alone and combined; (b) spike a fast
+      pipeline - retrieval outside the model (search API, parallel queries) plus one short Haiku
+      call (needs a search provider and key; would need a new ADR reversing 0003); (c) hard timeout
+      and fallback for API-side tail latency; (d) tighten `evals/thresholds.yaml` in its own commit
+      once achieved. Confirm how the target is measured (p95 latency, mean cost, quality floor).
+- [ ] Verdict store with live fallback (see working-notes-and-decisions.md, 2026-09-26): schema
+      (canonical claim, aliases, verdict, checked-on date, prompt/model version), semantic matching
+      with a conservative threshold, a review-then-publish seeding pipeline, and where the seed
+      claims come from (check source licenses).
+- [ ] Decide which tiers must exist before launch. The seed myths will mostly be scientific or
+      historical, both currently `not-implemented`.
+- [ ] Site: stack and hosting decision, visual design and navigation (final product look), backend
+      (API key server-side, rate limiting, abuse prevention, timeout fallback).
+- [ ] Prompt-injection eval cases before the site takes public input (moved up from "Lower
+      priority").
+- [ ] CI cleanup: `ci.yml` is the untouched template and runs a daily mock `eval-nightly` and
+      `eval-standard` on every push (all runs green as of 2026-09-26) - decide whether to keep or
+      remove; fix the README's `OWNER/REPO` placeholders (badge and clone URL) and empty demo
+      comment.
+- [~] Output formatting: the data cleanups are done (2026-09-26, branch `feat/output-formatting`):
+      `not-implemented` now returns only a plain "tier not implemented" message (no classifier
+      opinion) and `not-implemented` / `invalid-input` return `confidence: null`. What remains is
+      the final-product design (what the site looks like, how users navigate it) - see the Site
+      item above.
 
 ## v1 (after v0 closes out)
 
-- [ ] Remaining 3 of 5 v0 tiers (2 of 5 implemented so far).
+- [ ] Remaining 3 of 5 v0 tiers (2 of 5 implemented so far). Fine to defer for personal testing, but
+      likely needed before launch - a seed corpus of common myths is mostly scientific/historical.
 - [ ] Self-grading / accuracy tracker - named in the portfolio plan as this project's actual
       differentiator, but not committed to v1's scope yet. Leaning toward shipping v1 without it
       and adding it once a real backend exists anyway (site hosting will need one regardless).
@@ -48,7 +71,7 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       (small `llm.py` change, would make the next occurrence diagnosable); trimming quotes in code
       (risks eating legitimate ones).
 - [ ] Adversarial / prompt-injection eval cases - named in the README's "What's next," never
-      built.
+      built. (Moved up: now tracked under "Up next" as a gate before public input.)
 
 ## Completed (most recent first)
 

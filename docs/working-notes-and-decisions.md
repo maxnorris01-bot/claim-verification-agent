@@ -10,6 +10,42 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-26 - Performance targets, and a go/no-go gate on production.** Max set targets for a
+live (cache-miss) claim, end to end: **MVP: 5s or less and 2 cents or less; stretch: 2s and 1
+cent.** If the MVP target can't be hit, the project does not go to a production environment.
+Interpretation still to confirm with Max: latency as p95 and cost as the mean over the fast live
+eval, cache hits excluded, plus a quality floor so speed can't be bought with wrong answers
+(proposed: keep `min_pass_rate` 0.90 on the same cases). Baseline when the targets were set: eval
+p95 125.7s and mean $0.083 per claim (13/13 pass). From `runs/trace.jsonl` (21 live evaluator
+calls): mean $0.111 per evaluator call, median 31s, fastest 18.8s. Cost split: input tokens about
+62% (about 34k input tokens per call - search-result page content fed back to the model), searches
+about 24%, output about 14%. Latency correlates with input size (0.72) and has 117-310s outliers at
+ordinary token counts, i.e. API-side variability, so any fast design needs a hard timeout and a
+fallback. Conclusion: tuning alone (fewer searches, lower effort) won't reach the target; it needs
+an architecture change. Plan, in order: (1) env-var experiments, no accuracy assumptions, measured
+on the 13 cases - `APP_WEB_SEARCH_TOOL=web_search_20250305` (older tool, no code-execution step),
+`APP_MAX_SEARCHES=2`, `APP_EVALUATOR_EFFORT=low`; (2) a spike of retrieval outside the model
+(search-API snippets, parallel queries) plus one short Haiku call - hypothesis 4-8s and 1-2 cents,
+unmeasured; it would reverse ADR-0003 (needs a new ADR, a search provider account and key) and
+risks less evidence depth; (3) a quick-check / deep-check two-speed product (an idea, not decided).
+`evals/thresholds.yaml` (p95 300s, mean $0.10) still reflects the old baseline - tighten it in its
+own commit only once the new numbers are actually achieved.
+
+**2026-09-26 - Design direction: pre-populated verdict store with live fallback (not built, not
+fully decided).** Pre-compute verdicts for common myths and claims found online; a user query that
+matches a stored claim returns instantly, anything else runs the live pipeline. Benefits: instant
+and free for common claims, human review before publishing, and stable answers (the same claim
+otherwise gets different verdicts run to run, as `stat-005` did). Things to design: matching free
+text to stored claims needs semantic matching with a conservative threshold (a false match is worse
+than a miss), and the UI should show the matched claim text; verdicts need a checked-on date plus
+prompt and model version so they can be refreshed (this also feeds self-grading); a wrong stored
+verdict is served repeatedly, so review matters; seeding costs roughly $0.10 per claim at today's
+prices; source licenses need checking per source (use the claim text, generate our own
+evaluations). Consequence: most common myths are scientific or historical, and those are two of
+the three tiers still `not-implemented`, so those tiers matter more than "later". It also pulls
+storage forward (even a JSON or SQLite file shipped with the site). It does not remove the need for
+the speed target above: novel claims still take the live path.
+
 **2026-09-26 - v0 merged to `main` as a regular merge commit, not a squash.** Merge commit
 `23ae2e6` brings in all 45 branch commits. Chose a regular merge because the README and session
 docs cite specific commit hashes (e.g. `7ac91bb`, `737917f`, `0563054`, `f5828ff`); a squash merge
@@ -70,7 +106,10 @@ add it once the backend exists anyway. Not fully decided.
 
 **2026-09-24 - `eval-standard` / `eval-nightly` tiers: deliberately left unused.** They exist as
 Makefile targets and code paths (in both this repo and the template) but nobody's written the
-50+/100+ case sets they're meant for, and nothing schedules `nightly` to actually run. For a solo
+50+/100+ case sets they're meant for. (Correction 2026-09-26: `.github/workflows/ci.yml`, inherited
+untouched from the template, does schedule `eval-nightly` daily at 09:00 UTC and runs
+`eval-standard` on every push to `main`; both default to mock mode so they're free, and all CI runs
+were green when checked, but they're checking little.) For a solo
 portfolio project without real production traffic, investing in them isn't worth it right now.
 Revisit if the case count grows past ~15 or there's an actual reason to want a scheduled,
 more-thorough-but-less-frequent check.
