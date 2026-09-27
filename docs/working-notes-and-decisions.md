@@ -107,9 +107,9 @@ get re-flagged as a surprise security issue in a future session.
   merged. Decide: merge now to mark v0 "shipped," or keep developing on the branch a while longer.
 - Keep watching the `provenance_only` fix (v3) on future live runs - one full clean run plus 4/4 on
   `prov-005` isolated, not yet a long track record (see 2026-09-24 decision above).
-- Stray trailing characters in evaluator `reasoning`: seen on `prov-003` (2026-09-23) and again as
-  a stray `'` on a `statistical_data` claim (Gallup 5.6%) in the 2026-09-24 walkthrough. Cosmetic so
-  far, never affected a verdict, but on two tiers now - probably systematic; investigate.
+- Stray quote/trailing characters in evaluator free-text fields: investigated 2026-09-26 and
+  deliberately left as a documented cosmetic quirk (see `docs/todo.md`). Model-side, not our
+  parsing; roughly 1 run in 5 on the Gallup claim; revisit only if formatting makes it visible.
 - Output formatting: the walkthrough noted `not-implemented` verdicts mix the system message with the
   classifier's own take in `reasoning`, and `confidence: "low"` on a non-evaluation is ambiguous.
   See `docs/todo.md`.

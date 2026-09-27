@@ -26,8 +26,6 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       plain user-facing message plus a separate classifier-reasoning field, or hiding it;
       (2) `confidence: "low"` on a non-evaluation is ambiguous - consider null/n-a; (3) output is
       raw JSON, fine as an API response but not human-facing.
-- [ ] Investigate the stray trailing character bug in `reasoning` (see Lower priority below) -
-      now seen on two tiers, so probably worth doing before or alongside formatting.
 - [ ] Port the template's `max_total_cost_usd` aggregate run-level spend check back into this
       repo's own `evals/run.py` - the template has it now, this repo still relies solely on the
       $20/month Anthropic Console limit as a backstop.
@@ -42,12 +40,18 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
 
 ## Lower priority / opportunistic
 
-- [ ] Stray trailing characters in `reasoning`: first seen on `prov-003` (2026-09-23 live report,
-      with duplicated phrasing), then a stray `'` at the end of `reasoning` on a `statistical_data`
-      claim (Gallup 5.6%) during the 2026-09-24 walkthrough. Never affected a verdict or a case
-      pass/fail, but now seen on two tiers, so probably a systematic structured-output or parsing
-      quirk, not a one-off. Not yet investigated (start with `src/app/evaluators.py` and the
-      trace in `runs/trace.jsonl`).
+- [ ] Stray quote/trailing characters in evaluator free-text fields - investigated 2026-09-26,
+      deliberately not fixed, revisit only if the formatting layer makes it visible. Seen on
+      `prov-003` (2026-09-23, with duplicated phrasing) and as a stray `'` at the end of `reasoning`
+      on the Gallup 5.6% claim (2026-09-24). Findings: not our parsing (`llm.parse_json_object`
+      uses strict `json.loads` and nothing modifies `reasoning` afterward, so the characters are
+      inside the string the model wrote). A 5-run repeat of the Gallup claim showed `reasoning` and
+      `origin_trace` clean 5/5, but 2 evidence notes in 1 of 5 runs ended in `.'"` (possibly
+      legitimate nested quotes - unconfirmed). Roughly 1 run in 5, cosmetic, never affected a
+      verdict or pass/fail. Options not taken: a prompt line requiring plain-prose text fields
+      (needs many paid runs to verify at this rate); an opt-in raw-output field in the trace
+      (small `llm.py` change, would make the next occurrence diagnosable); trimming quotes in code
+      (risks eating legitimate ones).
 - [ ] Adversarial / prompt-injection eval cases - named in the README's "What's next," never
       built.
 
