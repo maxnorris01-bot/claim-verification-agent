@@ -46,7 +46,9 @@ class Evidence:
 class Verdict:
     tier: Tier | None  # None only for invalid-input (no claim to route)
     verdict: Label
-    confidence: Confidence
+    # None when no verdict was actually reached (not-implemented, invalid-input): "low" would read
+    # as low confidence in an answer, when there is no answer at all.
+    confidence: Confidence | None
     evidence: list[Evidence] = field(default_factory=list)
     origin_trace: str = ""
     reasoning: str = ""
@@ -58,15 +60,17 @@ class Verdict:
         return json.dumps(self.to_dict(), indent=indent)
 
 
-def not_implemented(tier: Tier, reasoning: str) -> Verdict:
+def not_implemented(tier: Tier) -> Verdict:
+    # Deliberately says only that the tier isn't supported yet. The classifier's own opinion of the
+    # claim is not included: it read like a verdict on a claim that was never evaluated.
     return Verdict(
         tier=tier,
         verdict=Label.NOT_IMPLEMENTED,
-        confidence=Confidence.LOW,
+        confidence=None,
         origin_trace="Not attempted: no evaluator exists for this tier yet.",
         reasoning=(
-            f"The '{tier}' tier is not yet implemented in v0, so the claim was routed but not "
-            f"evaluated. Classifier reasoning: {reasoning}"
+            f"The '{tier}' tier is not yet implemented in v0, so this claim was routed but not "
+            "evaluated."
         ),
     )
 
@@ -75,7 +79,7 @@ def invalid_input(reasoning: str) -> Verdict:
     return Verdict(
         tier=None,
         verdict=Label.INVALID_INPUT,
-        confidence=Confidence.LOW,
+        confidence=None,
         origin_trace="Not attempted: input is not a checkable claim.",
         reasoning=reasoning,
     )

@@ -118,5 +118,5 @@ def evaluate(claim: str, classification: Classification, budget: Budget) -> Verd
     assert classification.tier is not None
     evaluator = EVALUATORS.get(classification.tier)
     if evaluator is None:
-        return not_implemented(classification.tier, classification.reasoning)
+        return not_implemented(classification.tier)
     return evaluator(claim, classification, budget)

@@ -17,14 +17,16 @@ def test_json_uses_plain_string_values() -> None:
     assert json.loads(raw)["evidence"][0]["source_url"] == "https://example.org"
 
 
-def test_invalid_input_has_null_tier() -> None:
+def test_invalid_input_has_null_tier_and_null_confidence() -> None:
     raw = invalid_input("empty").to_json()
     assert '"tier": null' in raw
     assert '"verdict": "invalid-input"' in raw
+    assert '"confidence": null' in raw
 
 
-def test_not_implemented_names_tier_and_carries_classifier_reasoning() -> None:
-    v = not_implemented(Tier.HISTORICAL_FACTUAL, "it is about a treaty")
+def test_not_implemented_names_tier_and_has_no_confidence() -> None:
+    v = not_implemented(Tier.HISTORICAL_FACTUAL)
     assert v.verdict is Label.NOT_IMPLEMENTED
     assert "historical_factual" in v.reasoning
-    assert "it is about a treaty" in v.reasoning
+    assert v.confidence is None
+    assert '"confidence": null' in v.to_json()

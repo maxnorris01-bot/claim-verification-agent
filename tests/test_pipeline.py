@@ -39,6 +39,7 @@ def test_not_a_claim_is_invalid_input(install_client: Any) -> None:
     client = install_client([classifier_reply("not_a_claim")])
     v = run("asdkj qwpo zzxv")
     assert v.verdict is Label.INVALID_INPUT and v.tier is None
+    assert v.confidence is None
     assert len(client.calls) == 1
 
 
@@ -49,6 +50,7 @@ def test_unimplemented_tiers_degrade_gracefully(install_client: Any, tier: str) 
     client = install_client([classifier_reply(tier)])
     v = run("some claim")
     assert v.verdict is Label.NOT_IMPLEMENTED
+    assert v.confidence is None
     assert v.tier == Tier(tier)
     assert len(client.calls) == 1  # classifier only; no evaluator, no search
 
