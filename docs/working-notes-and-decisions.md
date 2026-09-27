@@ -10,6 +10,16 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-26 - v0 merged to `main` as a regular merge commit, not a squash.** Merge commit
+`23ae2e6` brings in all 45 branch commits. Chose a regular merge because the README and session
+docs cite specific commit hashes (e.g. `7ac91bb`, `737917f`, `0563054`, `f5828ff`); a squash merge
+would have collapsed those into one new commit and left the cited hashes reachable only through the
+old branch. Merged locally (`git merge --no-ff`) rather than via a PR because `gh` isn't installed
+and Homebrew isn't on this Mac - a PR would have left a GitHub-side record but not changed the
+result. Reasons it was ready to merge: live eval 13/13 with all thresholds met, lint/typecheck/tests
+green, reports and docs current. What "v0 shipped" does and doesn't mean: two of five tiers work
+and are eval-backed; the walkthrough was deliberately thin, and output formatting is still open.
+
 **2026-09-26 - Aggregate spend check ported; `max_total_cost_usd` set to $2.50.** The template's
 optional run-total check now exists in this repo's `evals/run.py`, with `max_total_cost_usd: 2.50`
 in `evals/thresholds.yaml` (added in its own `eval:` commit, per the rule that thresholds change
@@ -113,8 +123,6 @@ get re-flagged as a surprise security issue in a future session.
 
 ## Open items / parking lot
 
-- Merge `feat/v0-pipeline` into `main` - pushed to GitHub, PR link generated, never opened or
-  merged. Decide: merge now to mark v0 "shipped," or keep developing on the branch a while longer.
 - Keep watching the `provenance_only` fix (v3) on future live runs - one full clean run plus 4/4 on
   `prov-005` isolated, not yet a long track record (see 2026-09-24 decision above).
 - Stray quote/trailing characters in evaluator free-text fields: investigated 2026-09-26 and

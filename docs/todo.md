@@ -12,8 +12,6 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       2026-09-24 showed v2 did not hold - 11/13, `prov-005` regressed - so v3 was written; v3 is 13/13
       once plus 4/4 on `prov-005` isolated.) Move `stat-005` to `known-unstable/` in its own `eval:`
       commit only if it flips again.
-- [ ] Decide: merge `feat/v0-pipeline` into `main`, or keep developing on the branch. Pushed to
-      GitHub, PR link generated, never opened/merged.
 - [x] v0 close-out walkthrough (`2026-09-24`, deliberately short): ran two claims live via
       `scripts/check_claim.py` - an unimplemented-tier one (intermittent fasting) and a
       well-supported statistical one (Gallup 5.6%). Both behaved correctly. Stopped there on
@@ -53,6 +51,12 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       built.
 
 ## Completed (most recent first)
+
+- [x] `2026-09-26` - Merged `feat/v0-pipeline` into `main` (merge commit `23ae2e6`, a regular merge
+      not a squash so the commit hashes cited in the README and session docs stay reachable). No
+      PR was opened: `gh` isn't installed, so it was merged locally with `git merge --no-ff` and
+      pushed. `main` had no commits the branch lacked, so no conflicts. v0 is shipped on `main`;
+      further work goes on new branches.
 
 - [x] `2026-09-26` - Ported the template's `max_total_cost_usd` aggregate spend check into
       `evals/run.py` (code commit) and added `max_total_cost_usd: 2.50` to `evals/thresholds.yaml`
