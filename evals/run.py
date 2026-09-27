@@ -24,6 +24,11 @@ threads by design (both `anthropic.Anthropic` and `MockAnthropicClient` are simp
 this is expected to be safe, but it hasn't been stress-tested here). `app.tracing.span`'s file
 write is lock-protected so concurrent cases' trace lines can't interleave.
 
+`max_total_cost_usd` in `thresholds.yaml` (optional - omit the key to skip the check) bounds this
+*run's* total spend, on top of `Config.max_cost_usd` bounding each individual case - the per-case
+cap alone doesn't stop a run's total from adding up across many cases. This is a CI-time backstop;
+it doesn't replace the account-level spend limit set on the Anthropic Console workspace.
+
 Add LLM-as-judge scorers in evals/judges.py and validate them against a human-labeled gold set
 before trusting them.
 """
@@ -162,7 +167,8 @@ def main() -> int:
         results = list(executor.map(_score, cases))
     pass_rate = sum(r["passed"] for r in results) / len(results)
     latency_p95 = p95([r["latency_s"] for r in results])
-    mean_cost = sum(r["cost_usd"] for r in results) / len(results)
+    total_cost = sum(r["cost_usd"] for r in results)
+    mean_cost = total_cost / len(results)
 
     summary = {
         "tier": args.tier,
@@ -172,6 +178,7 @@ def main() -> int:
         "pass_rate": round(pass_rate, 4),
         "latency_p95_s": round(latency_p95, 4),
         "mean_cost_usd": round(mean_cost, 4),
+        "total_cost_usd": round(total_cost, 4),
     }
 
     failures = []
@@ -181,6 +188,9 @@ def main() -> int:
         failures.append(f"latency_p95 {latency_p95:.2f}s > {thresholds['max_latency_p95_s']}s")
     if mean_cost > thresholds["max_mean_cost_usd"]:
         failures.append(f"mean_cost ${mean_cost:.3f} > ${thresholds['max_mean_cost_usd']}")
+    max_total = thresholds.get("max_total_cost_usd")
+    if max_total is not None and total_cost > max_total:
+        failures.append(f"total_cost ${total_cost:.3f} > ${max_total} (this run's aggregate spend)")
 
     report_dir = EVALS_DIR / "reports"
     report_dir.mkdir(exist_ok=True)
