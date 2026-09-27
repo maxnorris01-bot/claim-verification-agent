@@ -21,7 +21,6 @@ Evaluator = Callable[[str, Classification, Budget], Verdict]
 # push output past 6000 tokens before the final JSON verdict; observed live at 6778 on a 4-search
 # case, which hit the old cap and raised instead of returning a verdict. 12000 gives headroom.
 EVALUATOR_MAX_TOKENS = 12000
-EVALUATOR_EFFORT = "medium"
 
 
 def _schema(labels: list[Label]) -> dict[str, Any]:
@@ -54,6 +53,9 @@ def _search_evaluator(tier: Tier, labels: list[Label]) -> Evaluator:
 
     def evaluate(claim: str, classification: Classification, budget: Budget) -> Verdict:
         prompt = load_prompt(tier.value)
+        search_tool = web_search_tool(
+            budget.config.max_searches, budget.config.web_search_tool_type
+        )
         with span(
             f"evaluator.{tier.value}",
             config=budget.config,
@@ -68,8 +70,8 @@ def _search_evaluator(tier: Tier, labels: list[Label]) -> Evaluator:
                 budget=budget,
                 max_tokens=EVALUATOR_MAX_TOKENS,
                 schema=schema,
-                tools=[web_search_tool(budget.config.max_searches)],
-                effort=EVALUATOR_EFFORT,
+                tools=[search_tool],
+                effort=budget.config.evaluator_effort,
                 # Search-heavy claims can run long with nothing to show for it until the whole
                 # response is ready; streaming avoids the ~360s APITimeoutError that caused on
                 # the buffered call (see README's Known failures). No-op in mock mode.

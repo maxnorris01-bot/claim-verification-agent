@@ -11,6 +11,10 @@ from dataclasses import dataclass
 from dotenv import find_dotenv, load_dotenv
 
 LLM_MODES = ("mock", "live")
+# Dynamic filtering (the model writes code to filter search results before reading them); needs
+# Sonnet 4.6+/Opus 4.6+. Configurable (APP_WEB_SEARCH_TOOL) so it can be compared against the older
+# `web_search_20250305` tool for latency/cost - see docs/working-notes-and-decisions.md.
+DEFAULT_WEB_SEARCH_TOOL = "web_search_20260209"
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,8 @@ class Config:
     classifier_model: str = "claude-haiku-4-5"
     evaluator_model: str = "claude-sonnet-5"
     max_searches: int = 4
+    web_search_tool_type: str = DEFAULT_WEB_SEARCH_TOOL
+    evaluator_effort: str = "medium"
     # "mock" (default): app.llm.get_client returns app.mock_llm.MockAnthropicClient - zero API
     # calls, zero cost, no key required. "live": the real Anthropic client, real cost. Never
     # defaults to "live" - every entry point (CLI, eval harness) is free unless explicitly opted
@@ -45,6 +51,8 @@ class Config:
             classifier_model=os.environ.get("APP_CLASSIFIER_MODEL", "claude-haiku-4-5"),
             evaluator_model=os.environ.get("APP_EVALUATOR_MODEL", "claude-sonnet-5"),
             max_searches=int(os.environ.get("APP_MAX_SEARCHES", "4")),
+            web_search_tool_type=os.environ.get("APP_WEB_SEARCH_TOOL", DEFAULT_WEB_SEARCH_TOOL),
+            evaluator_effort=os.environ.get("APP_EVALUATOR_EFFORT", "medium"),
             llm_mode=os.environ.get("APP_LLM_MODE", "mock"),
         )
 

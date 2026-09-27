@@ -21,7 +21,7 @@ from typing import Any, Protocol, cast
 import anthropic
 from anthropic.types import Message
 
-from app.config import Config, check_budget
+from app.config import DEFAULT_WEB_SEARCH_TOOL, Config, check_budget
 from app.mock_llm import MockAnthropicClient
 from app.prompts import Prompt
 from app.tracing import span
@@ -46,7 +46,6 @@ PRICING: dict[str, tuple[float, float]] = {
 CACHE_READ_MULTIPLIER = 0.1
 CACHE_WRITE_MULTIPLIER = 1.25
 WEB_SEARCH_USD_PER_REQUEST = 0.01
-WEB_SEARCH_TOOL_TYPE = "web_search_20260209"  # dynamic filtering; needs Sonnet 4.6+/Opus 4.6+
 
 REQUEST_TIMEOUT_S = 120.0
 
@@ -93,8 +92,8 @@ def get_client(mode: str) -> _MessagesClient:
     return anthropic.Anthropic(timeout=REQUEST_TIMEOUT_S)
 
 
-def web_search_tool(max_uses: int) -> dict[str, Any]:
-    return {"type": WEB_SEARCH_TOOL_TYPE, "name": "web_search", "max_uses": max_uses}
+def web_search_tool(max_uses: int, tool_type: str = DEFAULT_WEB_SEARCH_TOOL) -> dict[str, Any]:
+    return {"type": tool_type, "name": "web_search", "max_uses": max_uses}
 
 
 def estimate_cost(model: str, usage: Any) -> float:

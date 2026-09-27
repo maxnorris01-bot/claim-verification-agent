@@ -1,6 +1,7 @@
 import pytest
 
-from app.config import BudgetExceededError, Config, check_budget
+from app.config import DEFAULT_WEB_SEARCH_TOOL, BudgetExceededError, Config, check_budget
+from app.llm import web_search_tool
 from app.prompts import PROMPTS_DIR, load_prompt
 
 
@@ -16,6 +17,26 @@ def test_prompt_loads_with_version(name: str) -> None:
 def test_every_prompt_file_is_versioned() -> None:
     for path in PROMPTS_DIR.glob("*.md"):
         assert load_prompt(path.stem).version != "unversioned", path.name
+
+
+def test_search_tool_and_effort_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("APP_WEB_SEARCH_TOOL", raising=False)
+    monkeypatch.delenv("APP_EVALUATOR_EFFORT", raising=False)
+    cfg = Config.from_env()
+    assert cfg.web_search_tool_type == DEFAULT_WEB_SEARCH_TOOL == "web_search_20260209"
+    assert cfg.evaluator_effort == "medium"
+    assert web_search_tool(cfg.max_searches)["type"] == DEFAULT_WEB_SEARCH_TOOL
+
+
+def test_search_tool_and_effort_are_configurable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_WEB_SEARCH_TOOL", "web_search_20250305")
+    monkeypatch.setenv("APP_EVALUATOR_EFFORT", "low")
+    cfg = Config.from_env()
+    assert cfg.web_search_tool_type == "web_search_20250305"
+    assert cfg.evaluator_effort == "low"
+    tool = web_search_tool(cfg.max_searches, cfg.web_search_tool_type)
+    assert tool["type"] == "web_search_20250305"
+    assert tool["max_uses"] == cfg.max_searches
 
 
 def test_budget_caps_enforced() -> None:
