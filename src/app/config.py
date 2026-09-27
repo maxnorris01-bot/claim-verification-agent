@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from dotenv import find_dotenv, load_dotenv
 
 LLM_MODES = ("mock", "live")
+SEARCH_BACKENDS = ("anthropic", "tavily")
 # Dynamic filtering (the model writes code to filter search results before reading them); needs
 # Sonnet 4.6+/Opus 4.6+. Configurable (APP_WEB_SEARCH_TOOL) so it can be compared against the older
 # `web_search_20250305` tool for latency/cost - see docs/working-notes-and-decisions.md.
@@ -32,6 +33,9 @@ class Config:
     max_searches: int = 4
     web_search_tool_type: str = DEFAULT_WEB_SEARCH_TOOL
     evaluator_effort: str = "medium"
+    # "anthropic" (default): the model drives Anthropic's server-side web search tool.
+    # "tavily": we run the searches ourselves (app.search) and make one tool-less model call.
+    search_backend: str = "anthropic"
     # "mock" (default): app.llm.get_client returns app.mock_llm.MockAnthropicClient - zero API
     # calls, zero cost, no key required. "live": the real Anthropic client, real cost. Never
     # defaults to "live" - every entry point (CLI, eval harness) is free unless explicitly opted
@@ -41,6 +45,10 @@ class Config:
     def __post_init__(self) -> None:
         if self.llm_mode not in LLM_MODES:
             raise ValueError(f"APP_LLM_MODE must be one of {LLM_MODES}, got {self.llm_mode!r}")
+        if self.search_backend not in SEARCH_BACKENDS:
+            raise ValueError(
+                f"APP_SEARCH_BACKEND must be one of {SEARCH_BACKENDS}, got {self.search_backend!r}"
+            )
 
     @classmethod
     def from_env(cls) -> Config:
@@ -53,6 +61,7 @@ class Config:
             max_searches=int(os.environ.get("APP_MAX_SEARCHES", "4")),
             web_search_tool_type=os.environ.get("APP_WEB_SEARCH_TOOL", DEFAULT_WEB_SEARCH_TOOL),
             evaluator_effort=os.environ.get("APP_EVALUATOR_EFFORT", "medium"),
+            search_backend=os.environ.get("APP_SEARCH_BACKEND", "anthropic"),
             llm_mode=os.environ.get("APP_LLM_MODE", "mock"),
         )
 

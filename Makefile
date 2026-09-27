@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test eval-fast eval-fast-live eval-standard eval-nightly
+.PHONY: install lint format typecheck test eval-fast eval-fast-live eval-standard eval-nightly devserver
 
 install:
 	uv sync
@@ -19,7 +19,7 @@ test:
 
 # Free, no API key needed: exercises routing/shape/tracing/budget against a mock client.
 # Not a quality signal - see evals/run.py's docstring. This is the default; APP_LLM_MODE is
-# forced here so a stray `APP_LLM_MODE=live` in .env can't make a "fast" run silently cost money.
+# forced here so a stray 'APP_LLM_MODE=live' in .env can't make a "fast" run silently cost money.
 eval-fast:
 	APP_LLM_MODE=mock uv run python -m evals.run --tier fast
 
@@ -32,3 +32,8 @@ eval-standard:
 
 eval-nightly:
 	uv run python -m evals.run --tier nightly
+
+# Local, hands-on latency/cost feel-test at http://127.0.0.1:8000 - see scripts/devserver.py's
+# docstring for the env vars that control mode/backend/model. Not part of CI.
+devserver:
+	uv run python scripts/devserver.py

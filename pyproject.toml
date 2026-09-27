@@ -8,6 +8,9 @@ dependencies = [
     "anthropic>=1.7.0",
     "python-dotenv>=1.2.3",
     "pyyaml>=6.0",
+    # Was already an indirect dependency via `anthropic`; made explicit for app.search (the
+    # Tavily backend), which needs its bundled CA store rather than urllib's OS-keychain default.
+    "httpx>=0.23",
 ]
 
 [dependency-groups]
@@ -17,6 +20,10 @@ dev = [
     "mypy>=1.10",
     "types-PyYAML",
     "pre-commit>=3.7",
+    # scripts/devserver.py only - a local, manual latency/cost feel-test tool, not used by the
+    # app, the eval harness, or CI. Lives in the dev group so `make install` (`uv sync`) still
+    # picks it up without adding a runtime dependency the shipped pipeline doesn't need.
+    "flask>=3.0",
 ]
 
 [build-system]
