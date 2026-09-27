@@ -1,0 +1,170 @@
+{
+  "summary": {
+    "tier": "fast",
+    "prompt_versions": {
+      "classifier": "1",
+      "provenance_only": "1",
+      "statistical_data": "1"
+    },
+    "n_cases": 15,
+    "pass_rate": 0.7333,
+    "latency_p95_s": 364.3893,
+    "mean_cost_usd": 0.0804
+  },
+  "failures": [
+    "pass_rate 73.33% < 90.00%",
+    "latency_p95 364.39s > 300.0s"
+  ],
+  "results": [
+    {
+      "id": "stat-001",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 30.031210815010127,
+      "cost_usd": 0.07208200000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"5.6% of U.S. adults identified as LGBT in 2020\", \"source_url\": \"https://news.gallup.com/poll/389792/lgbt-identification-ticks-up.aspx\", \"note\": \"Gallup's own 2022 report states 'Currently, 7.1% of U.S. adults identify as LGBT, up from 5.6% in 2020, 4.5% in 2017 and 4.1% in 2016,' directly confirming the 5.6% figure for 2020.\"}], \"origin_trace\": \"Gallup News, 'LGBT Identification in U.S. Ticks Up to 7.1%' (Feb 2022), https://news.gallup.com/poll/389792/lgbt-identification-ticks-up.aspx \\u2014 this article cites the 2020 Gallup Poll Social Series estimate of 5.6% as a trend data point alongside the newer 7.1% figure for 2021.\", \"reasoning\": \"The claim's figure (5.6%), attributing agency (Gallup), population (U.S. adults), and time period (2020) all match exactly what Gallup itself reports in its own trend data. The claim is a simple, unembellished restatement of a single data point from Gallup's ongoing LGBT identification tracking survey, with no causal language, scope expansion, or definitional distortion. No framing drift was detected between the claim and the source.\"}"
+    },
+    {
+      "id": "stat-002",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 51.482665100018494,
+      "cost_usd": 0.103182,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://www.who.int/news/item/17-06-2021-one-in-100-deaths-is-by-suicide\", \"note\": \"WHO's own release states \\\"In 2019, more than 700 000 people died by suicide: one in every 100 deaths\\\"\"}, {\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://www.who.int/news-room/fact-sheets/detail/suicide\", \"note\": \"Current WHO fact sheet states \\\"Every year more than 700 000 people take their own life\\\", also citing an updated figure of over 720,000 elsewhere on the same page\"}, {\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://news.un.org/en/story/2025/09/1165817\", \"note\": \"UN News (2025) reporting on WHO figures now cites \\\"more than 720,000 people commit suicide every year\\\", showing the estimate has been revised upward slightly over time\"}], \"origin_trace\": \"Earliest source found: WHO press release '17-06-2021 One in 100 deaths is by suicide' (who.int), based on the WHO report 'Suicide worldwide in 2019', which states more than 700,000 people died by suicide in 2019. This figure has since been echoed and slightly updated (720,000+) in later WHO fact sheets and 2025 UN reporting.\", \"reasoning\": \"The claim's figure and attribution match WHO's own published statements almost verbatim, both in the 2021 press release and the current WHO fact sheet, which uses the same 'more than 700,000' phrasing without qualifying it beyond a specific year. The claim is a general, non-causal, straightforward restatement of WHO's own estimate, so it does not exhibit distortion in scope, causality, or certainty. Note that WHO's estimate has crept upward in more recent communications (720,000+, and even 727,000 in some WHO social media posts), meaning '700,000' is now a slightly conservative but still accurate rounding of the original and still-cited baseline figure.\"}"
+    },
+    {
+      "id": "stat-003",
+      "category": "statistical_data",
+      "passed": false,
+      "latency_s": 25.94088105301489,
+      "cost_usd": 0.09536,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"1 in 36 eight-year-olds ... identified with autism spectrum disorder in 2020\", \"source_url\": \"https://archive.cdc.gov/www_cdc_gov/autism/publications/higher-autism-prevalence-and-covid-19-disruptions.html\", \"note\": \"CDC states \\\"About 1 in 36 8-year-old children living in ADDM Network sites were identified with ASD in 2020, based on tracking in 11 communities\\\"\"}, {\"claim_snippet\": \"1 in 36 eight-year-olds\", \"source_url\": \"https://pubmed.ncbi.nlm.nih.gov/36952288/\", \"note\": \"MMWR abstract: \\\"For 2020, one in 36 children aged 8 years (approximately 4% of boys and ...\\\" were identified with ASD across 11 ADDM sites\"}, {\"claim_snippet\": \"1 in 36 (2.8%) 8-year-olds\", \"source_url\": \"https://publications.aap.org/aapnews/news/23904/CDC-Autism-rate-rises-to-1-in-36-children\", \"note\": \"Confirms figure as 1 in 36, or 2.8%, up from 1 in 44 in 2018, based on the same CDC report\"}, {\"claim_snippet\": \"in the U.S.\", \"source_url\": \"https://publichealth.jhu.edu/2023/cdc-report-shows-overall-and-maryland-autism-rate-increase-among-8-year-olds\", \"note\": \"Notes the prevalence is drawn from 11 ADDM Network surveillance sites (not a full national sample) though CDC commonly describes it as the U.S. rate\"}], \"origin_trace\": \"Primary source: CDC/ADDM Network MMWR Surveillance Summary, 'Prevalence and Characteristics of Autism Spectrum Disorder Among Children Aged 8 Years \\u2014 Autism and Developmental Disabilities Monitoring Network, 11 Sites, United States, 2020,' published 2023 (PubMed ID 36952288), which CDC itself summarized as '1 in 36 8-year-old children... identified with ASD in 2020.'\", \"reasoning\": \"The figure 1 in 36 for 8-year-olds in 2020 is directly and consistently reported by the CDC's own ADDM Network publication and corroborated by multiple secondary sources (AAP, Johns Hopkins, Autism Research Institute). The only nuance is that the data technically come from 11 ADDM surveillance sites rather than a full nationally representative sample, but CDC's own public communications describe this as the U.S. rate, so the claim's framing matches the source's own language. No causal or exaggerated language is added beyond what CDC itself used.\"}"
+    },
+    {
+      "id": "stat-004",
+      "category": "statistical_data",
+      "passed": false,
+      "latency_s": 25.39132005799911,
+      "cost_usd": 0.081008,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"A famous study proved that it takes 10,000 hours\", \"source_url\": \"https://www.salon.com/2016/04/10/malcolm_gladwell_got_us_wrong_our_research_was_key_to_the_10000_hour_rule_but_heres_what_got_oversimplified/\", \"note\": \"Ericsson himself says the 1993 violin study found the most accomplished students averaged '10,000 hours of practice' by early adulthood, but stresses 'there is nothing special or magical about ten thousand hours' and it was never proof of a universal rule.\"}, {\"claim_snippet\": \"it takes 10,000 hours of practice to master any skill\", \"source_url\": \"https://lhiasromero.medium.com/the-10-000-hr-rule-debunked-5471f679957b\", \"note\": \"Notes that 10,000 hours 'was not actually a number of hours reached, but an average of the time masters spent practicing,' with individual violinists ranging from far less to over 25,000 hours.\"}, {\"claim_snippet\": \"proved that it takes 10,000 hours ... to master any skill\", \"source_url\": \"https://www.lesswrong.com/posts/bjqsDJNRh25MNbpFK/the-10-000-hour-rule-is-a-myth\", \"note\": \"Describes the rule as 'a funny case of citation telephone' stemming from Gladwell's popularization, not a proven universal threshold; Ericsson published a rebuttal of this interpretation.\"}, {\"claim_snippet\": \"famous study\", \"source_url\": \"https://www.6seconds.org/2022/06/20/10000-hour-rule/\", \"note\": \"States Ericsson himself said 'the number 10,000 is totally arbitrary,' undercutting the idea that a study 'proved' a fixed 10,000-hour threshold.\"}, {\"claim_snippet\": \"to master any skill\", \"source_url\": \"https://www.scotthyoung.com/blog/2024/01/23/10000-hr-rule-myth/\", \"note\": \"Points out the rule as commonly stated is 'absurd' since anyone doing a job full-time would rack up 10,000 hours yet few become world-class, showing it does not generalize to 'any skill.'\"}], \"origin_trace\": \"The earliest source is Anders Ericsson's 1993 study of violin students at a Berlin music academy, which found the most accomplished performers averaged about 10,000 hours of practice by young adulthood. This was popularized and distorted by Malcolm Gladwell's 2008 book 'Outliers' into a general '10,000-hour rule' claiming a fixed threshold guarantees mastery in any field.\", \"reasoning\": \"The original 1993 study was a narrow, correlational finding about elite violinists' average cumulative practice time, not a controlled experiment 'proving' causation or a universal law. The claim inflates this into an absolute, causal rule applicable to 'any skill,' a distortion Ericsson himself has publicly rejected, calling the number 'arbitrary' and noting wide variation among individuals (some over 25,000 hours). Because the figure traces to a real study but the framing (proof, universality, causal mastery threshold) badly distorts the source, this is a mixed case bordering on not supported; given how thoroughly debunked the strong claim is by the original researcher, 'not supported' better reflects the specific wording 'proved... any skill.'\"}"
+    },
+    {
+      "id": "stat-005",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 34.6867759010056,
+      "cost_usd": 0.113011,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://en.wikipedia.org/wiki/Albert_Mehrabian\", \"note\": \"Wikipedia states Mehrabian himself said 'unless a communicator is discussing their feelings or attitudes, these equations are not applicable,' meaning the 7-38-55 breakdown does not apply to communication generally.\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://www.spring.org.uk/2023/02/what-percentage-communication-nonverbal.php\", \"note\": \"Describes the 93% figure as 'a myth deriving from studies by Albert Mehrabian and others,' not a general finding about all communication.\"}, {\"claim_snippet\": \"Research by Albert Mehrabian showed... nonverbal\", \"source_url\": \"https://bigthink.com/the-learning-curve/the-7-38-55-rule-debunking-the-golden-ratio-of-conversation/\", \"note\": \"States 'nothing in Mehrabian's research suggests the 7-38-55 ratio can be applied to communication as a whole,' contradicting the claim's scope.\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://www.linkedin.com/pulse/misinterpretation-7-38-55-rule-pedja-jovanovic\", \"note\": \"Notes the two underlying 1967 studies focused narrowly on 'communication of positive or negative emotions via single spoken word,' a tiny lab-based scenario, not all communication.\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://cornerstone.lib.mnsu.edu/cgi/viewcontent.cgi?article=1000&context=ctamj\", \"note\": \"Academic analysis (Lapakko) of the original 1967 Mehrabian & Ferris/Wiener studies showing they are frequently misapplied beyond their narrow original scope.\"}], \"origin_trace\": \"Original source: Albert Mehrabian's 1967 papers 'Decoding of Inconsistent Communications' and 'Inference of Attitudes from Nonverbal Communication in Two Channels' (with Ferris and Wiener), which studied how listeners judged a speaker's feelings/attitude from single spoken words when tone and facial expression conflicted with word meaning. Mehrabian himself, per his website and Wikipedia, stated the resulting 7%-38%-55% formula applies only to communication of feelings and attitudes, and 'unless a communicator is discussing their feelings or attitudes, these equations are not applicable.' The claim generalizes this to 'all human communication,' which is the well-documented popular distortion of the original narrow finding.\", \"reasoning\": \"The 93% figure does trace back to real Mehrabian studies, but those studies were narrowly about inconsistent messages of liking/feelings conveyed via a single spoken word in a lab setting, not communication broadly. Mehrabian explicitly disclaimed the broad application, and multiple academic and journalistic sources (Wikipedia, Big Think, PsyBlog, LinkedIn analysis, and Lapakko's academic paper) describe the 'all communication is 93% nonverbal' claim as a myth/misinterpretation. Because the figure is real but the scope, population, and generality asserted in the claim contradict what the original source and its author say, this is best classified as not supported (the specific claim as worded\\u2014'all human communication'\\u2014is directly contradicted), with high confidence given the strength and consistency of sourcing including the researcher's own clarification.\"}"
+    },
+    {
+      "id": "stat-006",
+      "category": "statistical_data",
+      "passed": false,
+      "latency_s": 364.3892683449958,
+      "cost_usd": 0.001168,
+      "steps": 2,
+      "error": "APITimeoutError('Request timed out or interrupted. This could be due to a network timeout, dropped connection, or request cancellation. See https://docs.anthropic.com/en/api/errors#long-requests for more details.')",
+      "output": ""
+    },
+    {
+      "id": "prov-001",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 35.85840266000014,
+      "cost_usd": 0.145698,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"Marrow Creek, Montana\", \"source_url\": \"https://www.youtube.com/watch?v=6EcC1GS6_hI\", \"note\": \"A YouTube video and related social media/vocal.media posts portray 'Marrow Creek' as a fictional or urban-legend town (tied to a mass-disappearance creepypasta and a separate horror fiction piece set in Appalachia), not a documented real municipality in Montana. Low credibility, appears to be creative/viral content rather than factual reporting.\"}, {\"claim_snippet\": \"water treatment plant ... shut down for three weeks in 2021\", \"source_url\": \"https://m-m.net/projects/whitefish-water-treatment-plant/\", \"note\": \"Search for real Montana water treatment plant news turned up only unrelated municipal projects (e.g., Whitefish, MT); no plant closure due to eels was found anywhere in Montana records or news archives.\"}], \"origin_trace\": \"No origin found: searched for 'Marrow Creek Montana water treatment plant eels', 'Marrow Creek Montana', and 'water treatment plant shut down live eels intake pipes 2021'. The only 'Marrow Creek' results found are fictional/urban-legend content (a YouTube 'disappearance' mystery video and unrelated horror fiction on vocal.media using the same place name), not a real Montana town. No news outlet, government record, or utility statement mentions such a plant, closure, or eel discovery.\", \"reasoning\": \"Web searches found no evidence that Marrow Creek, Montana is an actual, verifiable municipality, let alone one with a documented water treatment plant closure in 2021. The only search hits for 'Marrow Creek' are clearly fictional or creepypasta-style content unrelated to the claim's specifics. No credible news source, government record, or utility announcement corroborates a three-week shutdown due to eels in intake pipes. Given the complete absence of any credible corroboration and signs the place name itself may be fictional, this is classified as provenance-only rather than definitively false, since it's possible a very small or obscure location was simply not indexed, though that seems unlikely.\"}"
+    },
+    {
+      "id": "prov-002",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 60.72667889899458,
+      "cost_usd": 0.11945399999999999,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"Brindlemoor Foods\", \"source_url\": \"https://www.brindlemoor.com/contact-us\", \"note\": \"The only 'Brindlemoor' entity found in search results is a small site called Brindlemoor with a generic contact page ('Our location: Wherever there's internet'); it does not appear to be a cereal manufacturer or major food company, and there is no indication it is connected to the claim.\"}, {\"claim_snippet\": \"cereal box shrinkflation, leaked internal memo\", \"source_url\": \"https://www.cbsnews.com/news/inflation-shrinkflation-skimpflation-toilet-paper-candy-cereal-lendingtree/\", \"note\": \"Multiple credible outlets (CBS News, CBC, Tasting Table) document real, well-documented shrinkflation trends in the cereal industry generally, but none mention a company called Brindlemoor Foods or a leaked memo about a 4% box reduction.\"}], \"origin_trace\": \"No origin found: searched for 'Brindlemoor Foods cereal shrinkflation memo', 'Brindlemoor Foods', and '\\\"Brindlemoor\\\" cereal company' \\u2014 no news articles, company records, or any credible source referencing a food/cereal company named 'Brindlemoor Foods' or a leaked memo about 4% cereal box shrinkage were found.\", \"reasoning\": \"There is no evidence that a company called 'Brindlemoor Foods' exists as a cereal manufacturer; the only 'Brindlemoor' web presence found is an unrelated small site with no connection to cereal production or the alleged memo. While shrinkflation in the cereal industry is a well-documented general phenomenon covered by credible outlets like CBS News and CBC, none of these sources mention Brindlemoor Foods or corroborate the specific claim of a leaked internal memo describing a uniform 4% reduction with unchanged prices. Because the claim traces to no identifiable origin and no credible source names this company, it cannot be verified as either true or false \\u2014 it appears to lack any real provenance.\"}"
+    },
+    {
+      "id": "prov-003",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 24.752315126999747,
+      "cost_usd": 0.123166,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [], \"origin_trace\": \"No origin found: searched for 'Pellham Crossing Ohio city council library building sold' and '\\\"Pellham Crossing\\\"' and found no place by this name in Ohio at all \\u2014 only unrelated 'Pelham's Crossing' (Fredericksburg, VA neighborhood) and 'Pelham Crossing' (an industrial/office park in Greer, South Carolina). No town, village, or city called Pellham Crossing, Ohio appears to exist in any searchable records, news archives, or government listings.\", \"reasoning\": \"The claim is attributed only to a secondhand, unnamed source ('my neighbor's friend who works at the county clerk's office') with no naming of the county, no council members, no developer, and no date beyond 'last month.' Web searches for the specific place name 'Pellham Crossing, Ohio' return no results whatsoever \\u2014 the only similarly named places found are unrelated communities in Virginia and South Carolina, suggesting this Ohio location may not exist or is misspelled beyond recognition. Because there is no verifiable municipality to check meeting minutes or news coverage against, and the sourcing is anonymous hearsay, this cannot be confirmed or refuted; it remains uncorroborated rather than proven false.\"}"
+    },
+    {
+      "id": "prov-004",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 28.575001027988037,
+      "cost_usd": 0.10833100000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"No origin found: attempted web searches for \\\"Tarn Hollow, Vermont\\\" and for a mayor secretly being the anonymous author of a bestselling 2018 mystery novel series, but search tool access was unavailable/limited during this session, and no independent record of this place, person, or claim could be located from prior knowledge.\", \"reasoning\": \"There is no readily identifiable town called Tarn Hollow in Vermont in standard geographic or municipal records, and no credible reporting could be found connecting any mayor to secret authorship of a bestselling 2018 mystery series. The claim originates from a single small blog, which is a low-credibility, unverified source with no corroborating coverage from news outlets or the alleged novel series' publisher. Because search verification could not be completed due to tool limitations, and no independent corroboration exists in available knowledge, the claim cannot be confirmed or debunked with confidence. This is a classic case of an anonymous/unverifiable claim traced to a single low-credibility origin, so it is labeled provenance-only rather than true or false.\"}"
+    },
+    {
+      "id": "prov-005",
+      "category": "provenance_only",
+      "passed": false,
+      "latency_s": 311.71317963901674,
+      "cost_usd": 0.23985700000000001,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"not supported\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"$2 per bag\", \"source_url\": \"https://www.wasteline.org/general-information/frequently-asked-questions/\", \"note\": \"Omaha's local waste utility (Wasteline) already charges $2 per yard-waste bag sticker for its residential collection program \\recprivate hauler service, unrelated to any statewide tax and not tied to the Nebraska Department of Revenue.\"}, {\"claim_snippet\": \"$2 per biodegradable bag\", \"source_url\": \"https://huskerrefuse.com/lincoln-residential-service/yard-waste/\", \"note\": \"Lincoln-area private refuse hauler Husker Refuse also charges $2 per yard-waste bag as part of its existing service, again a local/private fee, not a state tax announced by the Department of Revenue.\"}], \"origin_trace\": \"No origin found: searched for the specific claim of a Nebraska statewide $2 leaf-bag fee attributed to an unnamed state revenue office source, and for the claim as a chain-text/hoax, but found no news coverage, official announcement, or origin point for this specific claim. Only found unrelated, pre-existing local municipal/private yard-waste bag fees in Omaha and Lincoln that already cost $2 per bag, plus the state's unrelated manufacturer 'litter fee'.\", \"reasoning\": \"The Nebraska Department of Revenue's official regulations show an existing 'litter fee' that applies to manufacturers and sellers of certain products, not a per-bag charge on residents for leaves left at the curb, and there is no press release, news article, or state statement announcing a new $2-per-bag leaf fee starting next October. The $2 figure appears to already exist as a local/private yard-waste bag fee in Omaha (Wasteline) and Lincoln (Husker Refuse), suggesting the chain text may be repurposing a real, pre-existing local fee and misattributing it to a state tax with a fabricated 'invented an unnamed anonymous source at the revenue office. No claim be verified as accurate to unclear at the state level in fictitious or created to fabricate this hoax cannot be confirmed as real, it's important to note this claim is anonymous chain text unrenewed unclear.'}the state's leaf claim was found unrelated to this specific claim; theaim as stated in a chain message reflect any credible source or should be double-checaim credible reporting for this claim.'}}, uring \"}"
+    },
+    {
+      "id": "unimpl-001",
+      "category": "scientific_empirical",
+      "passed": true,
+      "latency_s": 1.534230380988447,
+      "cost_usd": 0.001075,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"scientific_empirical\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'scientific_empirical' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a causal claim about how aerobic exercise affects blood pressure in a specific population (adults with hypertension). It asserts a physiological mechanism and health outcome that can be tested through scientific studies, controlled trials, and medical research.\"}"
+    },
+    {
+      "id": "unimpl-002",
+      "category": "contested_unfalsifiable",
+      "passed": true,
+      "latency_s": 1.7078260499984026,
+      "cost_usd": 0.001209,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"contested_unfalsifiable\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'contested_unfalsifiable' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a moral and ethical judgment about the justifiability of capital punishment. While there are factual claims one could make about the death penalty (deterrence rates, recidivism, costs, etc.), this statement itself asserts a normative position that evidence cannot settle\\u2014reasonable people disagree on moral principles that underlie capital punishment policy regardless of the empirical facts.\"}"
+    },
+    {
+      "id": "edge-001",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 0.0004785000055562705,
+      "cost_usd": 0.0,
+      "steps": 0,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was empty; there is no claim to check.\"}"
+    },
+    {
+      "id": "edge-002",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 1.3429293189838063,
+      "cost_usd": 0.00099,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was not a checkable claim. Classifier reasoning: This text is a random string of keyboard characters and numbers with no coherent meaning or checkable assertion. It does not express any claim about the world.\"}"
+    }
+  ]
+}

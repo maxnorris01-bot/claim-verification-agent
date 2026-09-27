@@ -3,8 +3,34 @@
     python -m evals.run --tier fast|standard|nightly
 
 Exits non-zero if thresholds in evals/thresholds.yaml are missed, so CI can gate on it.
-Scoring here is deterministic (substring checks). Add LLM-as-judge scorers in
-evals/judges.py and validate them against a human-labeled gold set before trusting them.
+
+Scoring depends on `Config.llm_mode` (`APP_LLM_MODE`, default "mock"):
+  * live: deterministic - `expected_contains` substrings matched (case-insensitively) against the
+    compact JSON of the returned Verdict, e.g. `"verdict": "mixed"`. This is a real quality check
+    and costs real API money (`make eval-fast-live`).
+  * mock: structural only - the returned `tier` must match the case's `category` (or, for
+    `category: edge`, the verdict must be `invalid-input`). The mock client
+    (`app.mock_llm.MockAnthropicClient`) has no real-world knowledge, so verdict *labels*
+    (supported/mixed/...) are never checked in this mode - a 100% mock pass rate is a plumbing
+    signal, not a quality signal. This is the default (`make eval-fast`), costs nothing, and
+    needs no API key.
+
+Cases are scored concurrently (ThreadPoolExecutor, see MAX_WORKERS): each case is dominated by
+network wait (a live evaluator call, or a fast but still-a-call mock/classifier round trip), so
+threads overlap that wait instead of running cases one at a time. This only helps wall-clock time,
+not cost - each case still pays for its own calls. Every case gets its own `Budget` (no shared
+mutable state across threads); `app.llm.get_client`'s cached client instance is shared across
+threads by design (both `anthropic.Anthropic` and `MockAnthropicClient` are simple enough that
+this is expected to be safe, but it hasn't been stress-tested here). `app.tracing.span`'s file
+write is lock-protected so concurrent cases' trace lines can't interleave.
+
+`max_total_cost_usd` in `thresholds.yaml` (optional - omit the key to skip the check) bounds this
+*run's* total spend, on top of `Config.max_cost_usd` bounding each individual case - the per-case
+cap alone doesn't stop a run's total from adding up across many cases. This is a CI-time backstop;
+it doesn't replace the account-level spend limit set on the Anthropic Console workspace.
+
+Add LLM-as-judge scorers in evals/judges.py and validate them against a human-labeled gold set
+before trusting them.
 """
 
 from __future__ import annotations
@@ -12,16 +38,25 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from app.config import Config, load_env
+from app.llm import Budget
 from app.pipeline import run as system_under_test
+from app.prompts import PROMPTS_DIR, load_prompt
+from app.verdict import Label, Tier, Verdict
 
 EVALS_DIR = Path(__file__).resolve().parent
 TIER_SIZES: dict[str, int | None] = {"fast": 15, "standard": 50, "nightly": None}
+# Each case is one network-bound run() call; this only shortens wall-clock time (cases still run
+# one request at a time internally), not cost - every case pays for its own calls regardless.
+MAX_WORKERS = 5
 
 
 def load_cases(tier: str) -> list[dict[str, Any]]:
@@ -34,23 +69,47 @@ def load_cases(tier: str) -> list[dict[str, Any]]:
     return cases if limit is None else cases[:limit]
 
 
-def score_case(case: dict[str, Any]) -> dict[str, Any]:
-    start = time.perf_counter()
+def prompt_versions() -> dict[str, str]:
+    return {p.stem: load_prompt(p.stem).version for p in sorted(PROMPTS_DIR.glob("*.md"))}
+
+
+def _passed(case: dict[str, Any], verdict: Verdict, output: str, config: Config) -> bool:
+    if config.llm_mode == "live":
+        expected = case.get("expected_contains", [])
+        return all(e.lower() in output.lower() for e in expected)
+    # Mock mode: only structural routing is meaningful (see module docstring) - the mock has no
+    # real-world knowledge, so verdict labels are never checked here.
+    category = case.get("category", "")
+    if category == "edge":
+        return verdict.verdict == Label.INVALID_INPUT
     try:
-        output = system_under_test(case["input"])
-        error = None
+        expected_tier = Tier(category)
+    except ValueError:
+        return False  # unknown category - can't structurally verify, don't silently pass it
+    return verdict.tier == expected_tier
+
+
+def score_case(case: dict[str, Any], config: Config) -> dict[str, Any]:
+    budget = Budget(config)
+    start = time.perf_counter()
+    verdict: Verdict | None = None
+    error: str | None = None
+    try:
+        verdict = system_under_test(case["input"], budget=budget)
     except Exception as exc:  # a crash is a failed case, not a crashed eval run
-        output, error = "", repr(exc)
+        error = repr(exc)
     latency = time.perf_counter() - start
-    expected = case.get("expected_contains", [])
-    passed = error is None and all(e.lower() in output.lower() for e in expected)
+    output = verdict.to_json() if verdict is not None else ""
+    passed = error is None and verdict is not None and _passed(case, verdict, output, config)
     return {
         "id": case["id"],
         "category": case.get("category", "default"),
         "passed": passed,
         "latency_s": latency,
-        "cost_usd": 0.0,  # populate from real usage once the pipeline calls a model
+        "cost_usd": budget.cost_usd,
+        "steps": budget.steps,
         "error": error,
+        "output": output,
     }
 
 
@@ -65,6 +124,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tier", choices=list(TIER_SIZES), default="fast")
     args = parser.parse_args()
+    load_env()
+    config = Config.from_env()
+    mode_note = (
+        "real API cost, quality-checked"
+        if config.llm_mode == "live"
+        else "free, structural routing check only - not a quality signal"
+    )
+    print(f"llm_mode={config.llm_mode} ({mode_note})", file=sys.stderr)
 
     thresholds = yaml.safe_load((EVALS_DIR / "thresholds.yaml").read_text())
     cases = load_cases(args.tier)
@@ -72,17 +139,46 @@ def main() -> int:
         print("No eval cases found.", file=sys.stderr)
         return 1
 
-    results = [score_case(c) for c in cases]
+    total = len(cases)
+    finished = 0
+    progress_lock = threading.Lock()
+
+    def _score(case: dict[str, Any]) -> dict[str, Any]:
+        # Progress goes to stderr so the JSON summary on stdout stays clean. Cases run
+        # MAX_WORKERS at a time, so "start" lines show what's in flight and "done" lines arrive in
+        # completion order, not case order (the final report is still in case order).
+        nonlocal finished
+        print(f"[start] {case['id']}", file=sys.stderr, flush=True)
+        result = score_case(case, config)
+        with progress_lock:
+            finished += 1
+            status = "PASS" if result["passed"] else "FAIL"
+            print(
+                f"[done {finished}/{total}] {result['id']} {status} "
+                f"{result['latency_s']:.1f}s ${result['cost_usd']:.3f}",
+                file=sys.stderr,
+                flush=True,
+            )
+        return result
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        # .map preserves input order in its results, regardless of completion order, so the
+        # report's case order stays stable and reproducible run to run.
+        results = list(executor.map(_score, cases))
     pass_rate = sum(r["passed"] for r in results) / len(results)
     latency_p95 = p95([r["latency_s"] for r in results])
-    mean_cost = sum(r["cost_usd"] for r in results) / len(results)
+    total_cost = sum(r["cost_usd"] for r in results)
+    mean_cost = total_cost / len(results)
 
     summary = {
         "tier": args.tier,
+        "llm_mode": config.llm_mode,
+        "prompt_versions": prompt_versions(),
         "n_cases": len(results),
         "pass_rate": round(pass_rate, 4),
         "latency_p95_s": round(latency_p95, 4),
         "mean_cost_usd": round(mean_cost, 4),
+        "total_cost_usd": round(total_cost, 4),
     }
 
     failures = []
@@ -92,11 +188,14 @@ def main() -> int:
         failures.append(f"latency_p95 {latency_p95:.2f}s > {thresholds['max_latency_p95_s']}s")
     if mean_cost > thresholds["max_mean_cost_usd"]:
         failures.append(f"mean_cost ${mean_cost:.3f} > ${thresholds['max_mean_cost_usd']}")
+    max_total = thresholds.get("max_total_cost_usd")
+    if max_total is not None and total_cost > max_total:
+        failures.append(f"total_cost ${total_cost:.3f} > ${max_total} (this run's aggregate spend)")
 
     report_dir = EVALS_DIR / "reports"
     report_dir.mkdir(exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    (report_dir / f"{args.tier}-{stamp}.json").write_text(
+    (report_dir / f"{args.tier}-{config.llm_mode}-{stamp}.json").write_text(
         json.dumps({"summary": summary, "failures": failures, "results": results}, indent=2)
     )
 

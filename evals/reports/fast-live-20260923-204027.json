@@ -1,0 +1,148 @@
+{
+  "summary": {
+    "tier": "fast",
+    "llm_mode": "live",
+    "prompt_versions": {
+      "classifier": "1",
+      "provenance_only": "1",
+      "statistical_data": "1"
+    },
+    "n_cases": 13,
+    "pass_rate": 0.9231,
+    "latency_p95_s": 229.5986,
+    "mean_cost_usd": 0.0883
+  },
+  "failures": [],
+  "results": [
+    {
+      "id": "stat-001",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 41.34855390098528,
+      "cost_usd": 0.13370500000000002,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"5.6% of U.S. adults identified as LGBT in 2020\", \"source_url\": \"https://news.gallup.com/poll/329708/lgbt-identification-rises-latest-estimate.aspx\", \"note\": \"Gallup's own report states verbatim: \\\"In 2020, 5.6% of U.S. adults identified as LGBT.\\\"\"}, {\"claim_snippet\": \"5.6% in 2020\", \"source_url\": \"https://www.hrc.org/press-releases/human-rights-campaign-president-on-new-gallup-poll-that-reinforces-the-growing-power-of-the-lgbtq-community\", \"note\": \"Secondary source confirms figure: current estimate 'up from 5.6% in Gallup's 2020 data and 4.5% in Gallup's 2017 data'\"}, {\"claim_snippet\": \"5.6% in 2020\", \"source_url\": \"https://news.gallup.com/poll/656708/lgbtq-identification-rises.aspx\", \"note\": \"Gallup's 2024 update references the 2020 figure as the starting point in the trend, noting the rate 'has nearly doubled since 2020'\"}], \"origin_trace\": \"Original source is Gallup's own report, 'LGBT Identification Rises to 5.6% in Latest U.S. Estimate' (news.gallup.com/poll/329708), published in early 2021 based on 2020 telephone interviews with 15,349 U.S. adults aged 18+. The claim quotes this figure and attribution exactly.\", \"reasoning\": \"The primary Gallup source directly states the same figure, population (U.S. adults 18+), time period (2020), and measure (self-identification as LGBT), with no causal or overstated language in the claim. The claim matches the source verbatim, including the exact percentage and attribution to Gallup. No framing drift, scope expansion, or misattribution is present.\"}"
+    },
+    {
+      "id": "stat-002",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 22.900353503995575,
+      "cost_usd": 0.069967,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"more than 700,000 people die by suicide every year\", \"source_url\": \"https://www.who.int/news-room/fact-sheets/detail/suicide\", \"note\": \"WHO fact sheet states 'Every year more than 700 000 people take their own life' and also cites 'More than 720 000 people die due to suicide every year', directly matching the claim's figure and attribution.\"}], \"origin_trace\": \"WHO official fact sheet 'Suicide' (who.int/news-room/fact-sheets/detail/suicide) is the primary source; the claim's figure and attribution to WHO match it directly, using the lower-bound rounded figure WHO itself also uses in its own materials.\", \"reasoning\": \"The claim directly quotes wording nearly identical to WHO's own fact sheet language, which states more than 700,000 (and elsewhere over 720,000) people die by suicide annually worldwide. The population (global), time frame (annual/yearly), and attribution (WHO) all match the primary source without embellishment or added causal claims. No scope distortion or strengthened language is present, so the claim is a faithful representation of the WHO estimate.\"}"
+    },
+    {
+      "id": "stat-005",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 37.40120651299367,
+      "cost_usd": 0.109453,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://www.scienceofpeople.com/body-language-percentage/\", \"note\": \"Explains the 93% figure is a widely repeated misinterpretation of Mehrabian's work, not a finding about 'all human communication'.\"}, {\"claim_snippet\": \"Research by Albert Mehrabian showed\", \"source_url\": \"https://maestrogroup.co/communication-myth/\", \"note\": \"Quotes Mehrabian directly saying it is 'absurd to imply or suggest that the verbal portion of all communication constitutes only seven percent of the message.'\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://cornerstone.lib.mnsu.edu/cgi/viewcontent.cgi?article=1000&context=ctamj\", \"note\": \"Academic paper labels the generalized claim an 'urban legend,' noting most secondary sources repeat the formula 'without any qualification.'\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://mohit-chhabra.medium.com/93-of-our-communication-this-is-wrong-caf55b7f3015\", \"note\": \"States the equations were derived only from experiments on communicating feelings/attitudes (like-dislike), and are 'not applicable' otherwise, per Mehrabian's own website.\"}, {\"claim_snippet\": \"93% of all human communication is nonverbal\", \"source_url\": \"https://en.wikipedia.org/wiki/Albert_Mehrabian\", \"note\": \"Identifies the finding as the '7%-38%-55% Rule,' specific to conveying feelings/attitudes, not all communication generally.\"}], \"origin_trace\": \"Original source: Albert Mehrabian's late 1960s studies (published in journals, later summarized in his book 'Silent Messages'), which examined only cases where a speaker's single spoken word conflicted with their tone of voice/facial expression while conveying feelings or attitudes (like/dislike). Mehrabian derived the 7%-38%-55% split for words/tone/body language strictly in that narrow experimental context, not for communication broadly, and he has publicly stated the generalized claim misrepresents his work.\", \"reasoning\": \"Multiple secondary sources and academic commentary confirm the 93% figure originates from Mehrabian's narrow experiments on inconsistent emotional messages (feelings/attitudes), not 'all human communication' as the claim states. Mehrabian himself has explicitly rejected the broad generalization, calling it absurd, and scholars label the extended claim an 'urban legend.' Because the claim strips out the critical population and scope qualifiers (only applies to expressing feelings/attitudes with conflicting verbal/nonverbal cues) and asserts a universal rule the source data does not support, the claim is not supported by the original research.\"}"
+    },
+    {
+      "id": "stat-006",
+      "category": "statistical_data",
+      "passed": true,
+      "latency_s": 40.07576012800564,
+      "cost_usd": 0.12687299999999999,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"statistical_data\", \"verdict\": \"not supported\", \"confidence\": \"high\", \"evidence\": [{\"claim_snippet\": \"women speak about 20,000 words a day while men speak only about 7,000\", \"source_url\": \"https://languagelog.ldc.upenn.edu/nll/?p=4488\", \"note\": \"Linguist Mark Liberman traces this figure as an unsourced statistic that circulated in self-help books (notably Louann Brizendine's) with no verifiable original study behind it.\"}, {\"claim_snippet\": \"20,000 words a day... 7,000 words a day\", \"source_url\": \"https://time.com/2992051/women-talk-more-study/\", \"note\": \"Reports that a University of Pennsylvania researcher tried to trace the 20,000/7,000 figures to their origin and could not find a credible study supporting them.\"}, {\"claim_snippet\": \"women speak about 20,000... men only about 7,000\", \"source_url\": \"https://abcnews.com/amp/Technology/story?id=3348076&page=1\", \"note\": \"Describes the actual Mehl et al. 2007 Science study, which found women spoke 16,215 words/day and men 15,669 words/day, a non-significant difference, directly contradicting the 20,000/7,000 figures.\"}, {\"claim_snippet\": \"A study found... 20,000... 7,000\", \"source_url\": \"https://www.researchgate.net/publication/6223260_Are_Women_Really_More_Talkative_Than_Men\", \"note\": \"Peer-reviewed Mehl et al. (2007) paper in Science concludes men and women do not differ significantly in daily word use, each speaking roughly 16,000 words per day.\"}, {\"claim_snippet\": \"women speak... men speak only about 7,000\", \"source_url\": \"https://www.scientificamerican.com/article/women-talk-more-than-men/\", \"note\": \"Notes the 20,000/7,000 claim was widely popularized but scientifically unsubstantiated, and that rigorous research shows comparable talkativeness between genders.\"}], \"origin_trace\": \"The earliest traceable point is Louann Brizendine's 2006 book 'The Female Brain,' which stated women use ~20,000 words/day vs. men's ~7,000; a University of Pennsylvania linguist (Mark Liberman, Language Log) investigated and found no genuine study behind these numbers, calling it an 'invented statistic.' The actual peer-reviewed research on this topic, Mehl et al. (2007, Science), found women spoke ~16,215 words/day and men ~15,669, a statistically non-significant difference.\", \"reasoning\": \"The specific 20,000 vs. 7,000 figures cannot be traced to any real study; linguists who investigated found the numbers appear to be fabricated or unsourced, originating from a popular science book rather than research. The one genuine, peer-reviewed study on daily word counts (Mehl et al. 2007) directly contradicts the claim, finding men and women speak nearly the same number of words per day with no statistically significant gender difference. Therefore the claim's figure is not merely reframed but factually wrong when compared to the best available evidence.\"}"
+    },
+    {
+      "id": "prov-001",
+      "category": "provenance_only",
+      "passed": false,
+      "latency_s": 46.07355115399696,
+      "cost_usd": 0.140591,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"not supported\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"Marrow Creek, Montana water treatment plant\", \"source_url\": \"https://www.youtube.com/watch?v=6EcC1GS6_hI\", \"note\": \"Search results indicate 'Marrow Creek' is associated with viral creepypasta/urban-legend content (a YouTube video titled 'The Silent Town of Marrow Creek \\u2014 America's Most Disturbing Disappearance' and a similar Facebook post claiming the town's ~862 residents vanished overnight), not a documented real municipality with civic infrastructure records. Low credibility, single origin type of content.\"}], \"origin_trace\": \"No clear origin found for the specific eel/water-plant claim; the only related search hits for 'Marrow Creek, Montana' point to unrelated viral/creepypasta content about the town's population supposedly vanishing overnight (YouTube and Facebook posts), suggesting Marrow Creek may be a fictional or legend-based location rather than a documented town with an identifiable water utility.\", \"reasoning\": \"Searches for 'Marrow Creek Montana water treatment plant eels', general Montana DEQ water treatment records, and general water-plant-shutdown-eel stories returned no results tying any real Montana municipality named Marrow Creek to a 2021 shutdown or eel discovery. The only search hits for 'Marrow Creek, Montana' at all relate to viral, unverified 'disappeared town' folklore content on YouTube/Facebook, which itself has no credible sourcing. No Montana state agency, local news outlet, or utility record corroborates the existence of this plant or the described incident. Given that Marrow Creek does not appear to be an identifiable real place in credible records, and no independent reporting supports the eel/shutdown claim, there is no basis to treat this as supported; it aligns with fabricated/hearsay viral content, though I cannot definitively prove non-existence of the town.\"}"
+    },
+    {
+      "id": "prov-002",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 25.877403102989774,
+      "cost_usd": 0.10664699999999999,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"Brindlemoor Foods quietly shrank every cereal box by 4%\", \"source_url\": \"https://www.brindlemoor.com/contact-us\", \"note\": \"Only real-world match for 'Brindlemoor' is a small business site with a generic contact page ('Our location: Wherever there's internet'); no indication it is a cereal or food manufacturer, and no mention of any memo or shrinkflation claim.\"}, {\"claim_snippet\": \"leaked internal memo\", \"source_url\": \"https://www.cbc.ca/news/business/shrinkflation-government-1.6996673\", \"note\": \"Credible CBC News report on general shrinkflation trend in cereal industry (e.g., Honeycomb cereal), but does not mention Brindlemoor Foods or any leaked memo.\"}, {\"claim_snippet\": \"shrank every cereal box by 4%\", \"source_url\": \"https://www.npr.org/sections/money/2021/07/06/1012409112/beware-of-shrinkflation-inflations-devious-cousin\", \"note\": \"NPR reporting on real shrinkflation cases (General Mills, Cinnamon Toast Crunch) \\u2014 establishes the phenomenon is real industry-wide, but no reference to a company called Brindlemoor Foods or a 4% figure.\"}], \"origin_trace\": \"No origin found: searched for \\\"Brindlemoor Foods\\\", \\\"Brindlemoor Foods cereal shrinkage memo\\\", and \\\"Brindlemoor Foods leaked internal memo cereal boxes\\\". No news outlet, court record, regulatory filing, or corporate statement referencing a company called Brindlemoor Foods making cereal was found. The only web presence for the name 'Brindlemoor' is an unrelated small business/personal site (brindlemoor.com) with no connection to cereal manufacturing or shrinkflation.\", \"reasoning\": \"Web searches from multiple angles turned up no evidence that 'Brindlemoor Foods' exists as a cereal manufacturer, let alone that it issued or was subject to a leaked memo about a 4% box-size reduction. General 'shrinkflation' in the cereal industry is a well-documented and real phenomenon (General Mills, Post, Kellogg's products have shrunk), which lends surface plausibility to the claim's genre, but the specific named company and specific memo cannot be found in any credible source. Absence of corroboration does not prove the claim false, but it cannot be verified as true either, making this a classic unverifiable chain-message claim likely using a fabricated or non-existent brand name.\"}"
+    },
+    {
+      "id": "prov-003",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 23.997144836001098,
+      "cost_usd": 0.11762199999999999,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"high\", \"evidence\": [], \"origin_trace\": \"No origin found: extensive searches for \\\"Pellham Crossing, Ohio\\\" and \\\"Pellham Crossing\\\" (in various spellings) return no matching place. Results instead surface unrelated places named 'Pelham Crossing' (an industrial park in Greer, SC), 'Pelham's Crossing' (a Virginia neighborhood), and various genuinely different Ohio 'Crossing' hamlets (Hagemans Crossing, Klocks Crossing, Scotts Crossing), none of which have a city council or a library sale matching the claim. There is no news outlet, government record, or any other source reporting this vote.\", \"reasoning\": \"The claim rests entirely on unverifiable hearsay ('my neighbor's friend who works at the county clerk's office') about a town, 'Pellham Crossing, Ohio,' that does not appear to exist as an incorporated municipality with a city council. No county, state, or news records reference this place name or any such library sale. Because there is no identifiable municipality to check meeting minutes or news coverage against, and the source is anonymous secondhand hearsay, this cannot be confirmed or denied \\u2014 it is provenance-only. Absence of corroboration does not prove the claim false, but there is nothing here that supports it either.'\"}"
+    },
+    {
+      "id": "prov-004",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 26.40976681301254,
+      "cost_usd": 0.132416,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [], \"origin_trace\": \"No origin found: searched for \\\"Tarn Hollow, Vermont\\\" and for a mayor/anonymous bestselling 2018 mystery novelist connection; found no evidence that a town called Tarn Hollow, Vermont exists at all (search results only returned unrelated 'tarn' geological features, other Vermont towns' mayors, and unrelated 'Hollow' place names), and no blog post or any source repeating this specific claim.\", \"reasoning\": \"Searches for the town name itself turned up no municipality called Tarn Hollow in Vermont, and no source\\u2014blog or otherwise\\u2014repeating the claim that its mayor secretly wrote a bestselling 2018 mystery series was found. Since the underlying place cannot even be verified to exist, and no independent or low-credibility source could be located discussing this claim, there is nothing to corroborate or refute. This is not enough to declare the claim false outright (absence of search results doesn't prove non-existence of a small blog post), but it cannot be verified as true either.\"}"
+    },
+    {
+      "id": "prov-005",
+      "category": "provenance_only",
+      "passed": true,
+      "latency_s": 229.59861806800473,
+      "cost_usd": 0.207591,
+      "steps": 2,
+      "error": null,
+      "output": "{\"tier\": \"provenance_only\", \"verdict\": \"provenance-only\", \"confidence\": \"medium\", \"evidence\": [{\"claim_snippet\": \"$2 fee per bag of leaves left at the curb\", \"source_url\": \"https://huskerrefuse.com/lincoln-residential-service/yard-waste/\", \"note\": \"Shows that a $2-per-bag yard-waste fee already exists as a routine LOCAL municipal service charge in Lincoln (and similarly in Omaha, per wasteline.org), unrelated to any new statewide tax or 'next October' start date and not tied to the state revenue office; this is likely the real-world detail the chain text distorted.\"}, {\"claim_snippet\": \"according to an unnamed source at the state revenue office\", \"source_url\": \"https://www.wowt.com/2025/11/03/nebraska-ag-hilgers-warns-against-scam-texts-claiming-be-dept-revenue/\", \"note\": \"Confirms the Nebraska Department of Revenue has recently been the target/name used in unrelated scam text messages (about tax refunds), showing a pattern of hoax texts falsely invoking that agency, but does not confirm any leaf-bag fee.\"}, {\"claim_snippet\": \"Nebraska will start charging a fee\", \"source_url\": \"https://nebraskalegislature.gov/bills/view_bill.php?DocumentID=41067\", \"note\": \"Nebraska legislative bill search turned up unrelated bills (a single-use checkout bag fee bill, and LB607 raising a per-ton landfill disposal fee), none of which describe a per-bag curbside leaf fee; no bill or state program matching the claim was found.\"}], \"origin_trace\": \"No origin found: searched for the specific claim ('Nebraska $2 fee per bag of leaves', 'Nebraska Department of Revenue leaf tax', 'Nebraska statewide leaf bag fee curb $2 legislature bill') and found no news report, government announcement, or primary record describing any such new statewide fee; the only related facts are pre-existing municipal $2/bag yard-waste sticker fees in Omaha and Lincoln (unrelated to the state revenue office) and unrelated Nebraska DOR scam-text warnings.\", \"reasoning\": \"No credible news outlet, Nebraska Department of Revenue statement, or legislative record describes a statewide $2 per-bag leaf fee starting next October; the only matching detail found is that some Nebraska cities already charge about $2 per yard-waste bag as an existing municipal service fee, which is a plausible real detail the hoax may have repurposed and misattributed to a state tax with an anonymous 'revenue office' source. The claim's structure (anonymous unnamed source, viral chain-text format, vague future date) matches known hoax patterns, and Nebraska's own revenue department has recently had to warn the public about unrelated scam texts impersonating it, but this specific leaf-fee claim itself traces to no identifiable origin or credible reporting, so it cannot be confirmed or refuted directly.\"}"
+    },
+    {
+      "id": "unimpl-001",
+      "category": "scientific_empirical",
+      "passed": true,
+      "latency_s": 1.488736050989246,
+      "cost_usd": 0.00113,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"scientific_empirical\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'scientific_empirical' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a claim about the physiological effects of exercise on blood pressure, which is answerable through scientific studies examining the mechanisms and outcomes of aerobic exercise in hypertensive populations. The assertion describes a causal relationship between a physical intervention and a measurable health outcome that can be tested empirically.\"}"
+    },
+    {
+      "id": "unimpl-002",
+      "category": "contested_unfalsifiable",
+      "passed": true,
+      "latency_s": 1.5394339199992828,
+      "cost_usd": 0.001149,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": \"contested_unfalsifiable\", \"verdict\": \"not-implemented\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: no evaluator exists for this tier yet.\", \"reasoning\": \"The 'contested_unfalsifiable' tier is not yet implemented in v0, so the claim was routed but not evaluated. Classifier reasoning: This is a moral judgment about the permissibility of capital punishment. While empirical facts about the death penalty exist (e.g., deterrence effects, costs, application rates), the core claim here is an ethical stance that cannot be settled by evidence alone\\u2014different moral frameworks will reach different conclusions about justifiability.\"}"
+    },
+    {
+      "id": "edge-001",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 0.0006019419815856963,
+      "cost_usd": 0.0,
+      "steps": 0,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was empty; there is no claim to check.\"}"
+    },
+    {
+      "id": "edge-002",
+      "category": "edge",
+      "passed": true,
+      "latency_s": 1.1814553060103208,
+      "cost_usd": 0.00102,
+      "steps": 1,
+      "error": null,
+      "output": "{\"tier\": null, \"verdict\": \"invalid-input\", \"confidence\": \"low\", \"evidence\": [], \"origin_trace\": \"Not attempted: input is not a checkable claim.\", \"reasoning\": \"The input was not a checkable claim. Classifier reasoning: This text is a random sequence of keyboard characters and numbers with no coherent meaning or checkable assertion. It contains no factual claim, question, or statement that could be verified.\"}"
+    }
+  ]
+}

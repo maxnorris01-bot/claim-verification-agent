@@ -1,14 +1,25 @@
 # CLAUDE.md
 
+## Session startup (read these in full before doing anything else)
+1. `Chat_Instructions.md` in the "Applied AI Portfolio Projects" Claude Project - collaboration
+   workflow (device-bridge file writes, hand off shell/git commands to Max, known gotchas). Read
+   once; it doesn't change per repo.
+2. This file, in full.
+3. `docs/working-notes-and-decisions.md` - durable decisions and why, most recent first.
+4. `docs/todo.md` - what's next, in priority order.
+5. The most recent file in `docs/sessions/` - what actually happened last time.
+6. `README.md`'s Results table and Known Failures section - current real numbers and known bugs.
+
 ## Commands
 - Install: `make install`
 - Lint + format check: `make lint`
 - Tests: `make test` (single test: `uv run pytest tests/test_x.py::test_name`)
-- Fast evals: `make eval-fast` (run after ANY change to prompts or agent logic)
+- Fast evals (mock, free): `make eval-fast` (run after ANY change to prompts or agent logic)
+- Fast evals (live, real API cost): `make eval-fast-live` - run deliberately, not routinely
 
 ## Rules
 - IMPORTANT: Prompts live in `prompts/` as versioned files. Never inline prompt strings in code.
-- Any change to a prompt or agent logic must be followed by `make eval-fast`. Show the output before calling the work done.
+- Any change to a prompt or agent logic must be followed by `make eval-fast`. Show the output before calling the work done. `make eval-fast` defaults to a mock client (`APP_LLM_MODE=mock`, free, no key required) - it's a routing/shape/plumbing check, not a quality gate. For a change that could affect verdict quality (a prompt's content, an evaluator's logic, a model choice), also run `make eval-fast-live` deliberately and report its real numbers - it costs real API money, so don't run it as part of routine iteration.
 - Eval cases and thresholds (`evals/`) change only through explicit, separate commits. Never edit them to make a failing eval pass.
 - Never commit secrets. Config comes from environment variables; `.env.example` lists what's needed.
 - Every agent loop must have a step cap and a cost cap, both set in `src/app/config.py`.
@@ -16,7 +27,33 @@
 - Record non-obvious design decisions as a short ADR in `docs/adr/`.
 
 ## Definition of done
-Lint clean, tests pass, `make eval-fast` meets `evals/thresholds.yaml`, README results table updated if numbers changed.
+Lint clean, tests pass, `make eval-fast` (mock) passes `evals/thresholds.yaml` as a plumbing check. For anything touching quality (prompts, evaluator logic, model choice), `make eval-fast-live`'s real numbers vs. `evals/thresholds.yaml` are the actual quality gate - report them, don't just cite the mock pass. README results table updated if live numbers changed.
+
+## Session summary (required at the end of every implementation session)
+Write `docs/sessions/<YYYY-MM-DD>-<short-slug>.md` before handing off, even if not asked. It's read by someone outside this session with no other context, so write it plainly, not as agent notes to self. Include:
+- What changed and why (the key decisions, not a diff narration)
+- Anything you asked the user to choose between mid-session, and what was picked
+- Eval numbers: tier run, pass rate, latency p95, mean cost, vs. thresholds
+- Test/lint/typecheck status
+- Open questions or things you'd flag for review before this merges
+- Exact next command the user should run (e.g. `git diff main`, `make eval-fast`)
+
+## Working notes and decisions log
+`docs/working-notes-and-decisions.md` is a different, longer-lived record than the session docs
+above. Session docs narrate one sitting's diff; the working notes log is a short, durable list of
+decisions (with the reasoning, not just the choice) and open items worth remembering - meant to be
+skimmed months later, not read start to end. Update it whenever a real decision actually gets made
+(scope, sequencing, what to defer and why, a tradeoff picked between options) - not just as an
+end-of-session ritual. If something is already fully written up elsewhere (a technical fix in a
+session doc, a bug in the README's Known Failures, a design tradeoff in an ADR), link to it here
+rather than duplicating the detail.
+
+## To-do list
+`docs/todo.md` is the running checklist - what's next, in priority order, checked off with a short
+note as items get done. Different from the working notes log above: that's decisions and reasoning,
+this is just task state. Keep it current as priorities shift, not just when items complete - it's
+meant to answer "what do I work on next" after time away without having to reconstruct it from
+session docs.
 
 ## Conventions
 - Conventional Commits (`feat:`, `fix:`, `eval:`, `docs:`, `chore:`).

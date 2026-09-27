@@ -5,6 +5,8 @@ description = "PROJECT_NAME"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "anthropic>=1.7.0",
+    "python-dotenv>=1.2.3",
     "pyyaml>=6.0",
 ]
 
@@ -26,7 +28,7 @@ packages = ["src/app"]
 
 [tool.ruff]
 line-length = 100
-src = ["src", "tests", "evals"]
+src = ["src", "tests", "evals", "scripts"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
@@ -34,7 +36,7 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["src", "evals"]
+files = ["src", "evals", "scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

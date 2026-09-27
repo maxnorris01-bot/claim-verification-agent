@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test eval-fast eval-standard eval-nightly
+.PHONY: install lint format typecheck test eval-fast eval-fast-live eval-standard eval-nightly
 
 install:
 	uv sync
@@ -17,8 +17,15 @@ typecheck:
 test:
 	uv run pytest
 
+# Free, no API key needed: exercises routing/shape/tracing/budget against a mock client.
+# Not a quality signal - see evals/run.py's docstring. This is the default; APP_LLM_MODE is
+# forced here so a stray `APP_LLM_MODE=live` in .env can't make a "fast" run silently cost money.
 eval-fast:
-	uv run python -m evals.run --tier fast
+	APP_LLM_MODE=mock uv run python -m evals.run --tier fast
+
+# Costs real API money. Run deliberately, not routinely - see README's Evaluation section.
+eval-fast-live:
+	APP_LLM_MODE=live uv run python -m evals.run --tier fast
 
 eval-standard:
 	uv run python -m evals.run --tier standard

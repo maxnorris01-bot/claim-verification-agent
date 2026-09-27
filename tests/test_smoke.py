@@ -1,18 +1,21 @@
 import pytest
 
 from app.config import BudgetExceededError, Config, check_budget
-from app.pipeline import run
-from app.prompts import load_prompt
+from app.prompts import PROMPTS_DIR, load_prompt
 
 
-def test_prompt_loads_with_version() -> None:
-    prompt = load_prompt("example")
-    assert prompt.version == "1"
+@pytest.mark.parametrize("name", ["classifier", "statistical_data", "provenance_only"])
+def test_prompt_loads_with_version(name: str) -> None:
+    prompt = load_prompt(name)
+    # Any positive integer version is valid. This used to assert `== "1"`, which broke the moment
+    # `provenance_only` was bumped to v3 - the number changes every time a prompt is revised.
+    assert prompt.version.isdigit() and int(prompt.version) >= 1
     assert prompt.text
 
 
-def test_pipeline_runs() -> None:
-    assert run("hello") == "hello"
+def test_every_prompt_file_is_versioned() -> None:
+    for path in PROMPTS_DIR.glob("*.md"):
+        assert load_prompt(path.stem).version != "unversioned", path.name
 
 
 def test_budget_caps_enforced() -> None:

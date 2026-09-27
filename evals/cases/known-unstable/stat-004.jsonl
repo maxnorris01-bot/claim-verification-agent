@@ -1,0 +1,1 @@
+{"id": "stat-004", "category": "statistical_data", "input": "A famous study proved that it takes 10,000 hours of practice to master any skill.", "expected_contains": ["\"tier\": \"statistical_data\"", "\"verdict\": \"mixed\""], "note": "Reproduced run-to-run verdict instability: mixed (run 1) -> not supported (run 2), same code, same input. See README.md."}
