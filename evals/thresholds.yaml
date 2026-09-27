@@ -5,3 +5,10 @@
 min_pass_rate: 0.90
 max_latency_p95_s: 300.0
 max_mean_cost_usd: 0.10
+# Bounds this run's TOTAL spend across every case, on top of Config.max_cost_usd (which only
+# bounds one case at a time). Sized for the 13-case fast tier: the last two live runs cost about
+# $1.08 each, so $2.50 leaves room for a heavier-than-usual run while still catching a runaway one.
+# It is a single number for every tier, so it would need raising (or per-tier values) before
+# eval-standard's ~50 cases are ever run for real. A CI-time backstop only - the $20/month Console
+# limit remains the account-level guard.
+max_total_cost_usd: 2.50
