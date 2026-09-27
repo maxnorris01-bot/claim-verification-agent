@@ -20,13 +20,26 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       working-notes-and-decisions.md, 2026-09-24 entry.)
 - [ ] **PERFORMANCE - gates production.** MVP target per live claim: 5s or less and 2 cents or
       less; stretch 2s and 1 cent; if MVP isn't met, the project doesn't ship to production (see
-      working-notes-and-decisions.md, 2026-09-26). Baseline: p95 125.7s, mean $0.083. Steps:
-      (a) env-var experiments on the 13 cases: `APP_WEB_SEARCH_TOOL=web_search_20250305`,
-      `APP_MAX_SEARCHES=2`, `APP_EVALUATOR_EFFORT=low`, alone and combined; (b) spike a fast
-      pipeline - retrieval outside the model (search API, parallel queries) plus one short Haiku
-      call (needs a search provider and key; would need a new ADR reversing 0003); (c) hard timeout
-      and fallback for API-side tail latency; (d) tighten `evals/thresholds.yaml` in its own commit
-      once achieved. Confirm how the target is measured (p95 latency, mean cost, quality floor).
+      working-notes-and-decisions.md, 2026-09-26). Baseline: p95 125.7s, mean $0.083.
+      (a) [x] env-var experiments on the model-driven search path: older tool + `max_searches=2`
+      plateaus at p95 16.5s / mean $0.043 (13/13); `evaluator_effort=low` on top made no
+      difference. Still 3x/2x over target - tuning alone isn't enough.
+      (b) [x] Tavily retrieval-outside-the-model spike (`APP_SEARCH_BACKEND=tavily`, not the
+      default): meets the cost target (mean $0.017) and quality holds (92-100% across four live
+      runs), but latency is stuck at ~15-17s p95. Two confirmed findings on why: JSON Schema
+      `maxItems` is rejected by the API, `maxLength` is accepted but not enforced. A third attempt
+      (a prose "be concise" instruction) looked ineffective but was actually never deployed to the
+      test run due to a bridge file-sync bug - retracted as inconclusive, not a real finding. Full
+      (corrected) detail: `docs/sessions/2026-09-26-tavily-search-spike.md`.
+      (c) [x] Built `scripts/devserver.py` / `make devserver` - a local page for feeling out
+      latency claim-by-claim to inform the go/no-go call. First real claim (CDC opioid stat) came
+      back correctly in 10s and felt slow.
+      (d) [ ] hard timeout and fallback for API-side tail latency - not started.
+      (e) [ ] tighten `evals/thresholds.yaml` in its own commit, once a design actually hits target.
+      **Open decision, not yet made:** keep chasing live-path latency (e.g. a smaller fixed schema,
+      dropping free-form fields), or accept 10-17s as the live (cache-miss) path and lean on the
+      verdict store so it's the rare exception, not the default. Needs Max's hands-on read via
+      `make devserver` - pick up next session.
 - [ ] Verdict store with live fallback (see working-notes-and-decisions.md, 2026-09-26): schema
       (canonical claim, aliases, verdict, checked-on date, prompt/model version), semantic matching
       with a conservative threshold, a review-then-publish seeding pipeline, and where the seed

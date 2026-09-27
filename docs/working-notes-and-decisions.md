@@ -10,6 +10,14 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-26 - No AI attribution lines in commits or PRs.** Max's standing preference: don't add
+`Co-Authored-By: Claude ...`, `Claude-Session: ...`, or any similar line to commit messages or PR
+descriptions in this repo (or the template). Some Cowork sessions carry a runtime instruction to
+add these automatically - that instruction is overridden by this explicit, project-level one.
+Caught after it had already slipped into commit message drafts once tonight; recorded here so a
+future session doesn't reintroduce it. Also added to the project's `Chat_Instructions.md` since
+that's the doc read at the start of every new Cowork chat.
+
 **2026-09-26 - Performance targets, and a go/no-go gate on production.** Max set targets for a
 live (cache-miss) claim, end to end: **MVP: 5s or less and 2 cents or less; stretch: 2s and 1
 cent.** If the MVP target can't be hit, the project does not go to a production environment.
@@ -30,6 +38,37 @@ unmeasured; it would reverse ADR-0003 (needs a new ADR, a search provider accoun
 risks less evidence depth; (3) a quick-check / deep-check two-speed product (an idea, not decided).
 `evals/thresholds.yaml` (p95 300s, mean $0.10) still reflects the old baseline - tighten it in its
 own commit only once the new numbers are actually achieved.
+
+**2026-09-26 - Performance: env-var tuning plateaus around 16s/$0.043; still needs an architecture
+change.** Step (a) of the plan above, measured: `web_search_20250305` + `APP_MAX_SEARCHES=2` gets
+to p95 16.5s / mean $0.043 (13/13); `APP_EVALUATOR_EFFORT=low` on top made no measurable difference
+(17.3s / $0.044 - within run-to-run noise). Real improvement over baseline (about 7x latency, 2x
+cost) but still 3x over on latency and 2x over on cost, confirming tuning alone can't reach the
+target. Full numbers and report filenames: `docs/sessions/2026-09-26-tavily-search-spike.md`.
+
+**2026-09-26 - Performance: Tavily retrieval-outside-the-model spike meets the cost target, not the
+latency one; go/no-go deferred pending hands-on testing.** Step (b) of the plan above. Built behind
+`APP_SEARCH_BACKEND=tavily` (default stays `"anthropic"`): two parallel Tavily searches, then one
+tool-less model call over the results, instead of the model driving its own search loop. Cost: met
+comfortably (mean $0.017, vs the 2c target) - Tavily's own per-search fee ($0.008 x 2) is now the
+single largest cost line item, simply because everything else got cheap around it. Quality: holds
+at 92-100% pass across four live runs, with three different cases failing once each - reads as the
+same kind of near-the-margin instability already flagged for `stat-005`, not a new problem. Latency:
+did not move from ~15-17s p95 despite attempts to shorten the evaluator's output (the actual
+dominant cost): a JSON Schema `maxItems` bound is rejected outright by the API (`"property
+'maxItems' is not supported"`), and a `maxLength` bound is accepted but silently not enforced (live
+output ran to 786 characters against a 400-char cap) - both confirmed live, and real, load-bearing
+findings about what this API's structured output does and doesn't enforce, not tuning misses. A
+third attempt, a prose "be concise" instruction, looked like it was also ignored, but a repeated
+bridge file-sync bug (a `device_commit_files` write reporting success without the file actually
+changing on Max's machine, hit at least three times this session) meant that specific edit was
+never actually deployed for its test run - so that result is retracted as inconclusive, not
+reported as a finding. See the session doc for the full, corrected account. Also built
+`scripts/devserver.py` / `make devserver`, a local page for feeling out latency claim-by-claim; a
+first real claim came back correctly in 10s and felt slow, which is the fast end of the measured
+range. No go/no-go call made - decision is either lean on the verdict store so live search is the
+rare exception, or attempt a more invasive schema redesign; picked up next session. Full detail:
+`docs/sessions/2026-09-26-tavily-search-spike.md`.
 
 **2026-09-26 - Design direction: pre-populated verdict store with live fallback (not built, not
 fully decided).** Pre-compute verdicts for common myths and claims found online; a user query that
