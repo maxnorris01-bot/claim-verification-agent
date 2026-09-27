@@ -26,9 +26,6 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       plain user-facing message plus a separate classifier-reasoning field, or hiding it;
       (2) `confidence: "low"` on a non-evaluation is ambiguous - consider null/n-a; (3) output is
       raw JSON, fine as an API response but not human-facing.
-- [ ] Port the template's `max_total_cost_usd` aggregate run-level spend check back into this
-      repo's own `evals/run.py` - the template has it now, this repo still relies solely on the
-      $20/month Anthropic Console limit as a backstop.
 
 ## v1 (after v0 closes out)
 
@@ -56,6 +53,14 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
       built.
 
 ## Completed (most recent first)
+
+- [x] `2026-09-26` - Ported the template's `max_total_cost_usd` aggregate spend check into
+      `evals/run.py` (code commit) and added `max_total_cost_usd: 2.50` to `evals/thresholds.yaml`
+      (separate `eval:` commit). Reports now include `total_cost_usd`. Surprise: `make test` had
+      been failing since the 2026-09-24 prompt v3 bump (`tests/test_smoke.py` hardcoded prompt
+      version `"1"`) - never caught because that session didn't rerun the unit tests. Fixed to accept
+      any positive integer version. Lesson: run the whole lint/typecheck/test/eval-fast chain after a
+      prompt bump, not just `make eval-fast`.
 
 - [x] `2026-09-24` - `provenance_only` prompt v3 written and tested after the second live run
       failed 11/13 under v2 (`prov-005` regressed, `stat-005` flipped). v3: 4/4 on `prov-005`

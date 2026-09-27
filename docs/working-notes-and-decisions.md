@@ -10,6 +10,16 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-26 - Aggregate spend check ported; `max_total_cost_usd` set to $2.50.** The template's
+optional run-total check now exists in this repo's `evals/run.py`, with `max_total_cost_usd: 2.50`
+in `evals/thresholds.yaml` (added in its own `eval:` commit, per the rule that thresholds change
+separately). $2.50 is sized for the 13-case fast tier: the last two live runs cost about $1.08, so
+it leaves room for a heavier run and still catches a runaway one. It's one number for all tiers,
+so `eval-standard`'s ~50 cases would trip it - deliberate for now, since that tier is unused (see
+the `eval-standard`/`eval-nightly` decision). Also found while verifying: `tests/test_smoke.py`
+hardcoded prompt version `"1"` and had been failing since the 2026-09-24 prompt v3 bump, uncaught
+because unit tests weren't rerun that session. Fixed to accept any positive integer version.
+
 **2026-09-24 - v0 walkthrough kept short on purpose.** Max ran two live claims by hand (an
 unimplemented-tier one and a well-supported statistical one) and stopped there, judging that more
 hands-on testing is better done once the actual site/tool is up rather than through the CLI. Both
@@ -93,9 +103,9 @@ eval-fast) before committing. Full detail in the template's own `docs/lessons-le
 **2026-09-21 - Aggregate live-run spend has no in-repo cap; a $20/month Console limit is the
 backstop.** `Config.max_cost_usd` bounds one case/invocation, not a whole run's total. Rather than
 build that into this repo's own `evals/run.py` mid-v0, set a $20/month spend limit on the
-Anthropic Console workspace as the actual guardrail. (The template now has an optional
-`max_total_cost_usd` check in `evals/run.py` - worth porting back into this repo at some point,
-not done yet.)
+Anthropic Console workspace as the actual guardrail. (Update 2026-09-26: the template's optional
+`max_total_cost_usd` check has since been ported into this repo - see the 2026-09-26 entry above.
+The Console limit remains the account-level guard.)
 
 **2026-09-24 - `github token.txt` in `~/Desktop/Projects/` is intentional, not a finding.**
 Sits outside any repo folder, kept there on purpose for reference. Noting this here so it doesn't
@@ -114,9 +124,6 @@ get re-flagged as a surprise security issue in a future session.
   classifier's own take in `reasoning`, and `confidence: "low"` on a non-evaluation is ambiguous.
   See `docs/todo.md`.
 - Adversarial prompt-injection eval cases - named in the README's "What's next," never built.
-- Port the template's `max_total_cost_usd` aggregate-spend check back into this repo's own
-  `evals/run.py` (see the 2026-09-21 decision above) - the template now has this, this repo
-  doesn't yet.
 
 ## See also
 

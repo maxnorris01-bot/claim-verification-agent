@@ -257,8 +257,12 @@ it deliberately, not routinely - see Evaluation below.
   runs, both over the old cap; see the streaming-fix session doc).
 - `max_cost_usd` bounds each case independently, not a run's aggregate spend - `evals/run.py`'s
   concurrent scoring (5 workers) doesn't change this, since each case still pays for its own calls.
-  Nothing in this repo bounds total spend across a run. A $20/month spend limit was set on the
-  Anthropic Console workspace on 2026-09-23 as an account-level backstop ahead of any in-repo one.
+  As of 2026-09-26 `evals/run.py` also checks the run's total against `max_total_cost_usd` in
+  `evals/thresholds.yaml` ($2.50, sized for the 13-case fast tier - the last two live runs cost
+  about $1.08 each) and fails the run if it's exceeded; that's a CI-time backstop, and a single
+  number for every tier, so it would need raising before `eval-standard`'s ~50 cases run for real.
+  A $20/month spend limit was set on the Anthropic Console workspace on 2026-09-23 as the
+  account-level backstop.
 
 ## Design decisions
 
