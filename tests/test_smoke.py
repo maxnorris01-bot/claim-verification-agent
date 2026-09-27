@@ -7,7 +7,9 @@ from app.prompts import PROMPTS_DIR, load_prompt
 @pytest.mark.parametrize("name", ["classifier", "statistical_data", "provenance_only"])
 def test_prompt_loads_with_version(name: str) -> None:
     prompt = load_prompt(name)
-    assert prompt.version == "1"
+    # Any positive integer version is valid. This used to assert `== "1"`, which broke the moment
+    # `provenance_only` was bumped to v3 - the number changes every time a prompt is revised.
+    assert prompt.version.isdigit() and int(prompt.version) >= 1
     assert prompt.text
 
 
