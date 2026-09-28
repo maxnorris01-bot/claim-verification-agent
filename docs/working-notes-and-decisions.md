@@ -10,6 +10,21 @@ README, a design tradeoff in an ADR), point to it here rather than duplicating i
 
 ## Decisions
 
+**2026-09-27 - Project moved to reserved/backup status; not shipping to production as-is.** The
+PERFORMANCE gate opened 2026-09-26 never resolved: cost target met (mean $0.017/claim) and quality
+held (92-100% pass), but latency stayed at 10-17s p95 with no confirmed lever left short of a real
+architecture change (see the two 2026-09-26 performance entries below). Rather than sink further
+paid live-eval iteration into tuning a design that's already hit its wall, the project joins City
+Livability and Satellite Conjunction in reserve - fully built, documented, and reactivatable, not
+abandoned. Reactivation would need either the architecture redesign or an accepted-as-is
+decision to lean on the not-yet-built verdict store so live search is the rare exception.
+Consequence for the portfolio roadmap: City Livability and Satellite Conjunction are promoted from
+reserve to the active MVP tier instead (both already scoped as separable-from-AI at the core), with
+Room Redesign Agent or Purchase Decision Agent next as the first project to add an agentic layer -
+see `Applied_AI_Portfolio_Plan.md`'s 2026-09-27 update for the full new roadmap. Full retrospective
+- what to do differently next time on approach, implementation, template fixes, and working cadence
+- is in the new `docs/lessons-learned.md`.
+
 **2026-09-26 - No AI attribution lines in commits or PRs.** Max's standing preference: don't add
 `Co-Authored-By: Claude ...`, `Claude-Session: ...`, or any similar line to commit messages or PR
 descriptions in this repo (or the template). Some Cowork sessions carry a runtime instruction to

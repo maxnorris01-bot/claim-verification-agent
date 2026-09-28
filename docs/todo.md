@@ -6,7 +6,16 @@ the checkmark itself. Add new items as they come up; don't wait for a session's 
 *not* where decisions and reasoning go - that's `docs/working-notes-and-decisions.md`. This is just
 "what's next."
 
-## Up next (in priority order)
+## Project status: reserved / backup (2026-09-27)
+
+Not actively being developed. The PERFORMANCE gate below never resolved - latency stuck at 10-17s
+per live claim with no confirmed lever left to try short of a bigger architecture change - so the
+project was moved to reserve status alongside City Livability and Satellite Conjunction rather than
+pushed to production as-is. See `working-notes-and-decisions.md` (2026-09-27 entry) for the full
+reasoning and `docs/lessons-learned.md` for the project retrospective. Everything below is left as
+it stood when work paused, not deleted, so the state is reconstructable if this gets reactivated.
+
+## Up next (in priority order) — as of when work paused
 
 - [ ] Keep watching the `provenance_only` v3 fix on future live runs. (Second live run on
       2026-09-24 showed v2 did not hold - 11/13, `prov-005` regressed - so v3 was written; v3 is 13/13
